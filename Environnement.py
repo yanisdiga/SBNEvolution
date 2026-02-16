@@ -5,26 +5,67 @@ from Agent import Agent
 
 WIDTH, HEIGHT = 1280, 720
 N_ITER = 1
-NUM_AGENTS = 100
-BASE_ENERGY = 200
+NUM_AGENTS = 3000
+BASE_ENERGY = 100
 ROTATE_DEG = 10
-DIVISION_ENERGY = 600
+DIVISION_ENERGY = 400
 TAILLE_AGENT = 5
 DISTANCE_MANGER = TAILLE_AGENT*2 # Distance a laquel un agent peut manger un autre
 PROBA_DELETION = 0.01
 PROBA_INSERTION = 0.02
 VALEUR_MAX_POIDS = 3
 N_BOOST = 1 # Nombre d'itération avant d'avoir un boost
-QUANTITE_BOOST = 1 # Quantité du boost d'énergie
+QUANTITE_BOOST = 1.5 # Quantité du boost d'énergie
 VISION_ANGLE = 45 # en degrées
 DISTANCE_VISION = DISTANCE_MANGER # distance a laquel un agent voit (pour l'instant même distance que pour manger)
 
-### A REINITIALISER N_BOOST, BASE_ENERGY, NUM_AGENT
+CELL_SIZE = DISTANCE_VISION * 1.2  # Doit être >= DISTANCE_VISION (on met distance_vision + 20% pour avoir de la marge d'erreur)
+cols = WIDTH // CELL_SIZE + 1
+rows = HEIGHT // CELL_SIZE + 1
+
+### A REINITIALISER N_BOOST, BASE_ENERGY, NUM_AGENT, DIVISION_ENERGY
+
+# La grille est un dictionnaire pour plus de flexibilité
+grid = {}
+
+# On applique ces méthode car boucler sur tout les agents alors que certain sont très loin nous consommaient trop de ressources (bcp trop !)
+def update_grid(agents):
+    grid = {}
+    for agent in agents:
+        # Calcul de l'index de la case
+        cx = int(agent.x // CELL_SIZE)
+        cy = int(agent.y // CELL_SIZE)
+        
+        cell_key = (cx, cy)
+        if cell_key not in grid:
+            grid[cell_key] = []
+        grid[cell_key].append(agent)
+    return grid
+
+def get_neighbors(agent, grid):
+    neighbors = []
+    cx = int(agent.x // CELL_SIZE)
+    cy = int(agent.y // CELL_SIZE)
+
+    # On boucle sur les 9 cases (celle de l'agent + les 8 voisines)
+    for i in range(cx - 1, cx + 2):
+        for j in range(cy - 1, cy + 2):
+            if (i, j) in grid:
+                neighbors.extend(grid[(i, j)])
+    
+    return neighbors
 
 # --- INITIALISATION PYGAME ---
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
+
+font = pygame.font.SysFont("Arial", 18)
+def display_fps(screen, clock):
+    # Récupère les FPS réels calculés par Pygame
+    fps = str(int(clock.get_fps()))
+    fps_text = font.render(f"FPS: {fps}", True, (255, 255, 0)) # Jaune
+    screen.blit(fps_text, (10, 10)) # Affichage en haut à gauche
 
 agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT) for i in range(NUM_AGENTS)]
 
@@ -34,6 +75,10 @@ total_steps = 0
 
 new_id = 1000
 
+# On pré-calcule le carré de la distance pour éviter les racines carrées (LENT)
+DIST_MANGER_SQ = DISTANCE_MANGER * DISTANCE_MANGER
+DISTANCE_VISION_SQ = DISTANCE_VISION**2
+
 while running:
     # 1. INDISPENSABLE : Dire à l'OS que le programme répond
     for event in pygame.event.get():
@@ -42,29 +87,28 @@ while running:
     
     # 2. LOGIQUE
     for _ in range(N_ITER):
-        total_steps += QUANTITE_BOOST
+        total_steps += 1
         new_enfants = []
         
         # Mélanger pour l'équité
         random.shuffle(agents)
-
-        # On pré-calcule le carré de la distance pour éviter les racines carrées (LENT)
-        DIST_MANGER_SQ = DISTANCE_MANGER * DISTANCE_MANGER
-        DISTANCE_VISION_SQ = DISTANCE_VISION**2
+        
+        spatial_grid = update_grid(agents)
+        
         for agent in agents:
             if not agent.alive:
                 continue
             
             # Boost d'énergie tout les N_BOOST pas de temps
-            if total_steps % 10 == 0:
-                agent.energy += 1
+            if total_steps % N_BOOST == 0:
+                agent.energy += QUANTITE_BOOST
             
             # On regarde si l'agent voit une cible
             vision_input = 0
             proie_potentielle = None
             
-            # On cherche les voisins
-            for other in agents:
+            proies_possibles = get_neighbors(agent, spatial_grid)
+            for other in proies_possibles:
                 if other is not agent and other.alive:
                     # Calcul de distance au carré
                     distance_x = other.x - agent.x
@@ -129,6 +173,10 @@ while running:
     # 3. AFFICHAGE (RENDU)
     if show_graphics:
         screen.fill((0, 0, 0))
+        # On crée un calque transparent (SRCALPHA permet de gérer l'opacité)
+        #overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        # On le vide à chaque frame
+        #overlay.fill((0, 0, 0, 0))
         
         for agent in agents:
             if agent.alive:
@@ -157,13 +205,16 @@ while running:
                 c_cone = (255, 255, 255, 20) # Blanc très transparent par défaut
                 if agent.sbn.states[0] == 1: c_cone = (255, 0, 0, 40) # Rouge si "Je vois"
                 
-                # On dessine sur le calque (pas sur l'écran direct)
+                # On dessine sur le calque (pas sur l'écran direct) pour l'opacité
                 pygame.draw.polygon(screen, c_cone, [pos, p_left, p_right])
                 
                 # Voir si l'agent mange
                 if agent.sbn.states[1] == 1:
                     pygame.draw.circle(screen, (255,255,255), pos, TAILLE_AGENT+3, 1)
-                    
+        
+        #screen.blit(overlay, (0, 0))
+        # On affiche les fps
+        display_fps(screen, clock)
         # On rafraîchit l'écran une fois après la boucle des agents
         pygame.display.flip()
     
