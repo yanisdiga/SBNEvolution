@@ -5,7 +5,7 @@ from Agent import Agent
 
 WIDTH, HEIGHT = 1280, 720
 N_ITER = 1
-NUM_AGENTS = 1000
+NUM_AGENTS = 200
 BASE_ENERGY = 100
 ROTATE_DEG = 10
 DIVISION_ENERGY = 400
@@ -22,8 +22,6 @@ DISTANCE_VISION = DISTANCE_MANGER # distance a laquel un agent voit (pour l'inst
 CELL_SIZE = DISTANCE_VISION * 1.2  # Doit être >= DISTANCE_VISION (on met distance_vision + 20% pour avoir de la marge d'erreur)
 cols = WIDTH // CELL_SIZE + 1
 rows = HEIGHT // CELL_SIZE + 1
-
-### A REINITIALISER N_BOOST, BASE_ENERGY, NUM_AGENT, DIVISION_ENERGY
 
 # La grille est un dictionnaire pour plus de flexibilité
 grid = {}
@@ -75,6 +73,8 @@ total_steps = 0
 
 new_id = 1000
 
+is_paused = False
+
 # On pré-calcule le carré de la distance pour éviter les racines carrées (LENT)
 DIST_MANGER_SQ = DISTANCE_MANGER * DISTANCE_MANGER
 DISTANCE_VISION_SQ = DISTANCE_VISION**2
@@ -84,59 +84,63 @@ while running:
     for event in pygame.event.get():    
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE: # Espace pour faire Pause/Dépause
+                is_paused = not is_paused
     
     # 2. LOGIQUE
-    for _ in range(N_ITER):
-        total_steps += 1
-        new_enfants = []
-        
-        # Mélanger pour l'équité
-        random.shuffle(agents)
-        
-        spatial_grid = update_grid(agents)
-        
-        for agent in agents:
-            if not agent.alive:
-                continue
+    if not is_paused:
+        for _ in range(N_ITER):
+            total_steps += 1
+            new_enfants = []
             
-            # Boost d'énergie tout les N_BOOST pas de temps
-            if total_steps % N_BOOST == 0:
-                agent.energy += QUANTITE_BOOST
+            # Mélanger pour l'équité
+            random.shuffle(agents)
             
-            # On récupère la liste des agents proche du notre
-            neighbors = get_neighbors(agent, spatial_grid)
-            # On enregistre dans l'agent agent.proie_potentielle si une cible est a sa portée
-            agent.sense(neighbors, DISTANCE_VISION_SQ, DIST_MANGER_SQ, VISION_ANGLE)
+            spatial_grid = update_grid(agents)
             
-            # Décision manger
-            action_eat = agent.update(agent.vision_input, PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
-            
-            # Manger
-            # On utilise la proie qu'on a trouvée dans la boucle de vision
-            if action_eat and (agent.proie_potentielle is not None):
-                victim = agent.proie_potentielle
-                # Vérification de sécurité (la victime est peut-être morte entre temps dans ce tour)
-                if victim.alive:
-                    victim.alive = False
-                    agent.energy += victim.energy
+            for agent in agents:
+                if not agent.alive:
+                    continue
+                
+                # Boost d'énergie tout les N_BOOST pas de temps
+                if total_steps % N_BOOST == 0:
+                    agent.energy += QUANTITE_BOOST
+                
+                # On récupère la liste des agents proche du notre
+                neighbors = get_neighbors(agent, spatial_grid)
+                # On enregistre dans l'agent agent.proie_potentielle si une cible est a sa portée
+                agent.sense(neighbors, DISTANCE_VISION_SQ, DIST_MANGER_SQ, VISION_ANGLE)
+                
+                # Décision manger
+                action_eat = agent.update(agent.vision_input, PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
+                
+                # Manger
+                # On utilise la proie qu'on a trouvée dans la boucle de vision
+                if action_eat and (agent.proie_potentielle is not None):
+                    victim = agent.proie_potentielle
+                    # Vérification de sécurité (la victime est peut-être morte entre temps dans ce tour)
+                    if victim.alive:
+                        victim.alive = False
+                        agent.energy += victim.energy
 
-            # Division
-            if agent.energy >= DIVISION_ENERGY:
-                if(random.random()< 0.5): 
-                    new_pos_x = agent.x + 15
-                else:
-                    new_pos_x = agent.x - 15
-                if (random.random() <0.5):
-                    new_pos_y = agent.y + 15
-                else:
-                    new_pos_y = agent.y - 15
-                enfant = agent.division(new_id, new_pos_x, new_pos_y)
-                new_id += 1
-                new_enfants.append(enfant)
-        
-        # Nettoyage rapide
-        agents = [a for a in agents if a.alive]
-        agents.extend(new_enfants)
+                # Division
+                if agent.energy >= DIVISION_ENERGY:
+                    if(random.random()< 0.5): 
+                        new_pos_x = agent.x + 15
+                    else:
+                        new_pos_x = agent.x - 15
+                    if (random.random() <0.5):
+                        new_pos_y = agent.y + 15
+                    else:
+                        new_pos_y = agent.y - 15
+                    enfant = agent.division(new_id, new_pos_x, new_pos_y)
+                    new_id += 1
+                    new_enfants.append(enfant)
+            
+            # Nettoyage rapide
+            agents = [a for a in agents if a.alive]
+            agents.extend(new_enfants)
         
     # 3. AFFICHAGE (RENDU)
     if show_graphics:
