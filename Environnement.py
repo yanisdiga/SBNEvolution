@@ -5,7 +5,7 @@ from Agent import Agent
 
 WIDTH, HEIGHT = 1280, 720
 N_ITER = 1
-NUM_AGENTS = 3000
+NUM_AGENTS = 1000
 BASE_ENERGY = 100
 ROTATE_DEG = 10
 DIVISION_ENERGY = 400
@@ -80,8 +80,8 @@ DIST_MANGER_SQ = DISTANCE_MANGER * DISTANCE_MANGER
 DISTANCE_VISION_SQ = DISTANCE_VISION**2
 
 while running:
-    # 1. INDISPENSABLE : Dire à l'OS que le programme répond
-    for event in pygame.event.get():
+    # 1. Paramétrage des touches de la simulation
+    for event in pygame.event.get():    
         if event.type == pygame.QUIT:
             running = False
     
@@ -103,50 +103,18 @@ while running:
             if total_steps % N_BOOST == 0:
                 agent.energy += QUANTITE_BOOST
             
-            # On regarde si l'agent voit une cible
-            vision_input = 0
-            proie_potentielle = None
-            
-            proies_possibles = get_neighbors(agent, spatial_grid)
-            for other in proies_possibles:
-                if other is not agent and other.alive:
-                    # Calcul de distance au carré
-                    distance_x = other.x - agent.x
-                    distance_y = other.y - agent.y
-                    dist_sq = distance_x*distance_x + distance_y*distance_y
-                    
-                    if dist_sq < DISTANCE_VISION_SQ:
-                        # On vérifie si l'agent regarde bien vers la cible
-                        
-                        # On calcule l'angle vers la cible (en radians) (arc tangente)
-                        angle_vers_cible = math.atan2(distance_y, distance_x)
-                        
-                        # On récupère l'angle actuel de l'agent (converti en radians)
-                        angle_regard = math.radians(agent.angle)
-                        
-                        # On calcul la différence
-                        diff = angle_vers_cible - angle_regard
-                        
-                        # Normalisation
-                        # On ramène automatiquement la différence entre -PI et +PI
-                        # Ex: -350° devient +10°
-                        diff = (diff + math.pi) % (2 * math.pi) - math.pi
-    
-                        # Si la différence est petite alors c'est "devant"
-                        if abs(diff) < math.radians(VISION_ANGLE):
-                            vision_input = 1
-                            # On vérifie que la cible est assez près pour la manger
-                            if dist_sq < DIST_MANGER_SQ:
-                                proie_potentielle = other
-                            break
+            # On récupère la liste des agents proche du notre
+            neighbors = get_neighbors(agent, spatial_grid)
+            # On enregistre dans l'agent agent.proie_potentielle si une cible est a sa portée
+            agent.sense(neighbors, DISTANCE_VISION_SQ, DIST_MANGER_SQ, VISION_ANGLE)
             
             # Décision manger
-            action_eat = agent.update(vision_input, PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
+            action_eat = agent.update(agent.vision_input, PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
             
             # Manger
             # On utilise la proie qu'on a trouvée dans la boucle de vision
-            if action_eat and (proie_potentielle is not None):
-                victim = proie_potentielle
+            if action_eat and (agent.proie_potentielle is not None):
+                victim = agent.proie_potentielle
                 # Vérification de sécurité (la victime est peut-être morte entre temps dans ce tour)
                 if victim.alive:
                     victim.alive = False
@@ -178,39 +146,9 @@ while running:
         # On le vide à chaque frame
         #overlay.fill((0, 0, 0, 0))
         
+        # Affichage des agents
         for agent in agents:
-            if agent.alive:
-                pos = (int(agent.x), int(agent.y))
-                
-                # Couleur : du Rouge (mort) au Vert (vie)
-                ratio = max(0, min(agent.energy / BASE_ENERGY, 1))
-                red = int(255 * (1 - ratio))
-                green = int(255 * ratio)
-                color = (red, green, 0)
-                pygame.draw.circle(screen, color, pos, TAILLE_AGENT)
-                
-                # Pour voir la direction ou les agents regarde
-                # end_x = agent.x + 10 * math.cos(math.radians(agent.angle))
-                # end_y = agent.y + 10 * math.sin(math.radians(agent.angle))
-                # pygame.draw.line(screen, (255, 255, 255), pos, (end_x, end_y), 1)
-                
-                portee = DISTANCE_VISION
-                rad_gauche = math.radians(agent.angle - VISION_ANGLE)
-                rad_droite = math.radians(agent.angle + VISION_ANGLE)
-                
-                p_left = (agent.x + portee * math.cos(rad_gauche), agent.y + portee * math.sin(rad_gauche))
-                p_right = (agent.x + portee * math.cos(rad_droite), agent.y + portee * math.sin(rad_droite))
-                
-                # Couleur adaptative
-                c_cone = (255, 255, 255, 20) # Blanc très transparent par défaut
-                if agent.sbn.states[0] == 1: c_cone = (255, 0, 0, 40) # Rouge si "Je vois"
-                
-                # On dessine sur le calque (pas sur l'écran direct) pour l'opacité
-                pygame.draw.polygon(screen, c_cone, [pos, p_left, p_right])
-                
-                # Voir si l'agent mange
-                if agent.sbn.states[1] == 1:
-                    pygame.draw.circle(screen, (255,255,255), pos, TAILLE_AGENT+3, 1)
+            agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY)
         
         #screen.blit(overlay, (0, 0))
         # On affiche les fps
