@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+import numpy as np
 from Agent import Agent
 
 WIDTH, HEIGHT = 1280, 720
@@ -22,6 +23,10 @@ DISTANCE_VISION = DISTANCE_MANGER # distance a laquel un agent voit (pour l'inst
 CELL_SIZE = DISTANCE_VISION * 1.2  # Doit être >= DISTANCE_VISION (on met distance_vision + 20% pour avoir de la marge d'erreur)
 cols = WIDTH // CELL_SIZE + 1
 rows = HEIGHT // CELL_SIZE + 1
+
+SEED = 42 # On met une seed pour pouvoir simuler plusieurs fois la même expérience
+random.seed(SEED) # On applique la seed a random (cela marchera peut importe ou random est appelé (n'importe quel classe))
+np.random.seed(SEED) # Pareil pour le random de numpy
 
 # La grille est un dictionnaire pour plus de flexibilité
 grid = {}
