@@ -71,7 +71,7 @@ running = True
 show_graphics = True
 total_steps = 0
 
-new_id = 1000
+new_id = NUM_AGENTS
 
 is_paused = False
 
