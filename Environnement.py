@@ -4,6 +4,8 @@ import math
 import numpy as np
 from Agent import Agent
 from GraphVisualisation import show_sbn_graph
+from Interface import draw_dashboard
+from SpatialGrid import update_grid, get_neighbors
 
 # ==========================================================
 # CONFIGURATION DE LA SIMULATION
@@ -13,7 +15,7 @@ from GraphVisualisation import show_sbn_graph
 PARAMS = {
     "TEST_NAME": "Extinction_Initiale",
     "SEED": 42,
-    "NUM_AGENTS": 1000,
+    "NUM_AGENTS": 2000,
     "BASE_ENERGY": 100,
     "DIVISION_ENERGY": 600,
     "MODE_FOOD": 1,
@@ -65,60 +67,6 @@ np.random.seed(SEED) # Pareil pour le random de numpy
 # Dashboard d'information
 DASHBOARD_SIZE = 50
 
-def draw_dashboard(screen, clock, agents, total_steps, params):
-    # 1. Dessin du fond du bandeau
-    pygame.draw.rect(screen, (20, 20, 20), (0, 0, WIDTH, DASHBOARD_SIZE-5)) # -5 pour laisser un petit gap
-    pygame.draw.line(screen, (150, 150, 150), (0, DASHBOARD_SIZE-5), (WIDTH, DASHBOARD_SIZE-5), 2) # -5 pour laisser un petit gap
-
-    # 2. Informations à afficher
-    fps = int(clock.get_fps())
-    pop = len(agents)
-    mode_txt = "Photosynthèse" if params["MODE_FOOD"] == 1 else "Chasse"
-    
-    # Rendu des textes
-    txt_test = font.render(f"TEST: {params['TEST_NAME']}", True, (255, 255, 255))
-    txt_pop  = font.render(f"POPULATION: {pop}", True, (0, 255, 100) if pop > 0 else (255, 50, 50))
-    txt_step = font.render(f"STEPS: {total_steps}", True, (200, 200, 200))
-    txt_mode = font.render(f"MODE: {mode_txt}", True, (100, 200, 255))
-    txt_fps  = font.render(f"FPS: {fps}", True, (255, 255, 0))
-
-    # 3. Positionnement sur le bandeau
-    screen.blit(txt_test, (20, 15))
-    screen.blit(txt_mode, (300, 15))
-    screen.blit(txt_step, (550, 15))
-    screen.blit(txt_pop,  (750, 15))
-    screen.blit(txt_fps,  (WIDTH - 100, 15))
-
-# La grille est un dictionnaire pour plus de flexibilité
-grid = {}
-
-# On applique ces méthode car boucler sur tout les agents alors que certain sont très loin nous consommaient trop de ressources (bcp trop !)
-def update_grid(agents):
-    grid = {}
-    for agent in agents:
-        # Calcul de l'index de la case
-        cx = int(agent.x // CELL_SIZE)
-        cy = int(agent.y // CELL_SIZE)
-        
-        cell_key = (cx, cy)
-        if cell_key not in grid:
-            grid[cell_key] = []
-        grid[cell_key].append(agent)
-    return grid
-
-def get_neighbors(agent, grid):
-    neighbors = []
-    cx = int(agent.x // CELL_SIZE)
-    cy = int(agent.y // CELL_SIZE)
-
-    # On boucle sur les 9 cases (celle de l'agent + les 8 voisines)
-    for i in range(cx - 1, cx + 2):
-        for j in range(cy - 1, cy + 2):
-            if (i, j) in grid:
-                neighbors.extend(grid[(i, j)])
-    
-    return neighbors
-
 # --- INITIALISATION PYGAME ---
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + DASHBOARD_SIZE))
@@ -126,13 +74,6 @@ pygame.display.set_caption("Simulation SBN Evolution")
 clock = pygame.time.Clock()
 
 font = pygame.font.SysFont("Arial", 18)
-
-# Fonction permettant l'affichage des FPS (images par seconde)
-def display_fps(screen, clock):
-    # Récupère les FPS réels calculés par Pygame
-    fps = str(int(clock.get_fps()))
-    fps_text = font.render(f"FPS: {fps}", True, (255, 255, 0)) # Jaune
-    screen.blit(fps_text, (10, 10)) # Affichage en haut à gauche
 
 # Liste stockant les agents
 agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT) for i in range(NUM_AGENTS)]
@@ -188,7 +129,7 @@ while running:
             # Mélanger pour l'équité
             random.shuffle(agents)
             
-            spatial_grid = update_grid(agents)
+            spatial_grid = update_grid(agents, CELL_SIZE)
             
             for agent in agents:
                 if not agent.alive:
@@ -199,8 +140,8 @@ while running:
                     if total_steps % N_BOOST == 0:
                         agent.energy += QUANTITE_BOOST
                 
-                # On récupère la liste des agents proche du notre
-                neighbors = get_neighbors(agent, spatial_grid)
+                # On récupère la liste des cases proche de nous
+                neighbors = get_neighbors(agent, spatial_grid, CELL_SIZE)
                 # On enregistre dans l'agent agent.proie_potentielle si une cible est a sa portée
                 agent.sense(neighbors, DISTANCE_VISION_SQ, DIST_MANGER_SQ, VISION_ANGLE)
                 
@@ -248,10 +189,8 @@ while running:
             agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE)
         
         #screen.blit(overlay, (0, 0))
-        # On affiche les fps
-        if(DISPLAY_FPS):  display_fps(screen, clock)
         # On affiche le dashboard
-        draw_dashboard(screen, clock, agents, total_steps, PARAMS)
+        draw_dashboard(screen, clock, agents, total_steps, PARAMS, WIDTH, DASHBOARD_SIZE, font)
         # On rafraîchit l'écran une fois après la boucle des agents
         pygame.display.flip()
     
