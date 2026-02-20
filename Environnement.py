@@ -3,6 +3,7 @@ import random
 import math
 import numpy as np
 from Agent import Agent
+from GraphVisualisation import show_sbn_graph
 
 # ==========================================================
 # CONFIGURATION DE LA SIMULATION
@@ -156,6 +157,27 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE: # Espace pour faire Pause/Dépause
                 is_paused = not is_paused
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # 1 correspond au clic gauche
+                is_paused = True
+                mx, my = pygame.mouse.get_pos()
+                # On ramène le clic de la souris dans le référentiel de la simulation
+                my = my - DASHBOARD_SIZE
+                
+                rayon_sq = TAILLE_AGENT * TAILLE_AGENT
+                # On cherche quel agent a été cliqué
+                for agent in agents:
+                    if not agent.alive: continue
+                    dx = mx - agent.x
+                    dy = my - agent.y
+                    
+                    # Test de collision Cercle / Point sans racine carrée
+                    if (dx*dx + dy*dy) <= rayon_sq:
+                        print(f"Ouverture du cerveau de l'agent {agent.id}")
+                        # Appel de la fonction de visualisation du réseau sbn
+                        show_sbn_graph(agent.id, agent.sbn)
+                        # On a trouvé l'agent cliqué, inutile de tester les autres
+                        break
     
     # 2. LOGIQUE
     if not is_paused:
