@@ -118,7 +118,7 @@ class Agent:
                     # On vérifie qu'il est a bonne distance
                     if dist_sq < dist_manger_sq:
                         self.proie_potentielle = other
-                    break # On arrête à la première proie vue
+                        break # On arrête à la première proie vue et mangeable
                 
                 
                 
