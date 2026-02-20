@@ -121,13 +121,13 @@ class Agent:
                         break # On arrête à la première proie vue et mangeable
                 
                 
-                
-    def draw(self, screen, overlay, size, vision_dist, fov, max_energy):
+    
+    def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y):
         if not self.alive:
             return
         
         # On récupère la position de l'agent
-        pos = (int(self.x), int(self.y))
+        pos = (int(self.x), int(self.y + offset_y)) # offset crée le décalage pour laisser de la place pour le dashboard du haut
         
         # Affichage du cercle colorée
         ratio = max(0, min(self.energy / max_energy, 1))
@@ -138,8 +138,8 @@ class Agent:
         left_rad = math.radians(self.angle - fov)
         right_rad = math.radians(self.angle + fov)
         
-        p_left = (self.x + vision_dist * math.cos(left_rad), self.y + vision_dist * math.sin(left_rad))
-        p_right = (self.x + vision_dist * math.cos(right_rad), self.y + vision_dist * math.sin(right_rad))
+        p_left = (self.x + vision_dist * math.cos(left_rad), (self.y + offset_y) + vision_dist * math.sin(left_rad))
+        p_right = (self.x + vision_dist * math.cos(right_rad), (self.y + offset_y) + vision_dist * math.sin(right_rad))
         
         cone_color = (255, 0, 0, 40) if self.vision_input == 1 else (255, 255, 255, 20)
         pygame.draw.polygon(overlay, cone_color, [pos, p_left, p_right])

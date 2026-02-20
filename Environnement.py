@@ -12,14 +12,14 @@ from Agent import Agent
 PARAMS = {
     "TEST_NAME": "Extinction_Initiale",
     "SEED": 42,
-    "NUM_AGENTS": 10,
-    "BASE_ENERGY": 10000,
-    "DIVISION_ENERGY": 16000,
+    "NUM_AGENTS": 1000,
+    "BASE_ENERGY": 100,
+    "DIVISION_ENERGY": 600,
     "MODE_FOOD": 1,
     "N_BOOST": 10,
     "QUANTITE_BOOST": 1,
-    "PROBA_DELETION": 0.01/60,
-    "PROBA_INSERTION": 0.02/60,
+    "PROBA_DELETION": 0.01,
+    "PROBA_INSERTION": 0.02,
     "VALEUR_MAX_POIDS": 3
 }
 
@@ -61,6 +61,33 @@ CELL_SIZE = DISTANCE_VISION * 1.2  # Doit être >= DISTANCE_VISION (on met dista
 random.seed(SEED) # On applique la seed a random (cela marchera peut importe ou random est appelé (n'importe quel classe))
 np.random.seed(SEED) # Pareil pour le random de numpy
 
+# Dashboard d'information
+DASHBOARD_SIZE = 50
+
+def draw_dashboard(screen, clock, agents, total_steps, params):
+    # 1. Dessin du fond du bandeau
+    pygame.draw.rect(screen, (20, 20, 20), (0, 0, WIDTH, DASHBOARD_SIZE-5)) # -5 pour laisser un petit gap
+    pygame.draw.line(screen, (150, 150, 150), (0, DASHBOARD_SIZE-5), (WIDTH, DASHBOARD_SIZE-5), 2) # -5 pour laisser un petit gap
+
+    # 2. Informations à afficher
+    fps = int(clock.get_fps())
+    pop = len(agents)
+    mode_txt = "Photosynthèse" if params["MODE_FOOD"] == 1 else "Chasse"
+    
+    # Rendu des textes
+    txt_test = font.render(f"TEST: {params['TEST_NAME']}", True, (255, 255, 255))
+    txt_pop  = font.render(f"POPULATION: {pop}", True, (0, 255, 100) if pop > 0 else (255, 50, 50))
+    txt_step = font.render(f"STEPS: {total_steps}", True, (200, 200, 200))
+    txt_mode = font.render(f"MODE: {mode_txt}", True, (100, 200, 255))
+    txt_fps  = font.render(f"FPS: {fps}", True, (255, 255, 0))
+
+    # 3. Positionnement sur le bandeau
+    screen.blit(txt_test, (20, 15))
+    screen.blit(txt_mode, (300, 15))
+    screen.blit(txt_step, (550, 15))
+    screen.blit(txt_pop,  (750, 15))
+    screen.blit(txt_fps,  (WIDTH - 100, 15))
+
 # La grille est un dictionnaire pour plus de flexibilité
 grid = {}
 
@@ -93,8 +120,8 @@ def get_neighbors(agent, grid):
 
 # --- INITIALISATION PYGAME ---
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption(TEST_NAME)
+screen = pygame.display.set_mode((WIDTH, HEIGHT + DASHBOARD_SIZE))
+pygame.display.set_caption("Simulation SBN Evolution")
 clock = pygame.time.Clock()
 
 font = pygame.font.SysFont("Arial", 18)
@@ -196,11 +223,13 @@ while running:
         
         # Affichage des agents
         for agent in agents:
-            agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY)
+            agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE)
         
         #screen.blit(overlay, (0, 0))
         # On affiche les fps
         if(DISPLAY_FPS):  display_fps(screen, clock)
+        # On affiche le dashboard
+        draw_dashboard(screen, clock, agents, total_steps, PARAMS)
         # On rafraîchit l'écran une fois après la boucle des agents
         pygame.display.flip()
     
