@@ -37,6 +37,10 @@ class SbNetwork:
         self.weights[7, 7] = -1
         self.weights[7, 3] = 1
         
+        # On stock les id réel de chaque noeud (pour la visualisation)
+        self.true_ids = list(range(self.num_nodes)) # Donne [0, 1, 2, 3, 4, 5, 6, 7]
+        self.next_historical_id = 8 # Le prochain neurone créé s'appellera N8
+        
     def step(self, oeil):
         # On récupère bien la valeur de l'oeil par rapport a l'environnement
         self.states[0] = oeil
@@ -79,6 +83,8 @@ class SbNetwork:
         # On remplace l'ancienne matrice de poids par la nouvelle
         self.weights = new_weights
         self.num_nodes += 1 # On met a jour le nombre de noeud
+        self.true_ids.append(self.next_historical_id) # On ajoute le nouveau noeud dans les id
+        self.next_historical_id += 1 # On met a jour l'id du prochain noeud
         
     def deletion(self):
         if self.num_nodes <=4:
@@ -89,5 +95,6 @@ class SbNetwork:
         self.weights = np.delete(self.weights, node_to_delete, axis=0)
         self.weights = np.delete(self.weights, node_to_delete, axis=1)
         self.num_nodes -=1
+        self.true_ids.pop(node_to_delete)
         
         

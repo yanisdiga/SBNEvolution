@@ -11,22 +11,20 @@ def show_sbn_graph(agent_id, sbn):
     G = nx.DiGraph()
     
     # Dictionnaire de traduction
-    name_nodes = {
-        0: "E", 1: "M", 2: "F", 3: "R",
-        4: "R1", 5: "R2", 6: "R3", 7: "R4"
-    }
+    name_nodes = {0: "E", 1: "M", 2: "F", 3: "R", 4: "R1", 5: "R2", 6: "R3", 7: "R4"}
     
     # On ajoute des noms génériques (N8, N9...) si le réseau a muté et grandi
     for i in range(8, sbn.num_nodes):
         name_nodes[i] = f"N{i}"
 
     # On crée chaque noeud de haut en bas en fonction de la fonction (pour plus de lisibilité)
-    for i, name in name_nodes.items():
-        if i in [0, 1]:         # Oeil, Bouche
+    for id in sbn.true_ids:
+        name = name_nodes.get(id, f"N{id}")
+        if id in [0, 1]:         # Oeil, Bouche
             layer = 3           # Couche supérieure
-        elif i in [4, 5, 6]:    # R1, R2, R3
+        elif id in [4, 5, 6]:    # R1, R2, R3
             layer = 1           # Couche inférieure
-        elif i in [3, 7]:       # R, R4
+        elif id in [3, 7]:       # R, R4
             layer = 0           # Couche inférieure
         else:                   # F et les nouveaux noeuds (N8, N9...)
             layer = 2           # Couche intermédiaire
@@ -41,14 +39,21 @@ def show_sbn_graph(agent_id, sbn):
         for j in range(sbn.num_nodes):
             poids = sbn.weights[i, j]
             if poids != 0:
+                id_depart = sbn.true_ids[i]
+                id_arrivee = sbn.true_ids[j]
+                
+                # On génère le nom dynamiquement s'il est nouveau (>= 8)
+                nom_depart = name_nodes.get(id_depart, f"N{id_depart}")
+                nom_arrivee = name_nodes.get(id_arrivee, f"N{id_arrivee}")
+                
                 # On ajoute la connexion avec son poids
-                G.add_edge(name_nodes[i], name_nodes[j], weight=poids)
+                G.add_edge(nom_depart, nom_arrivee, weight=poids)
                 
                 # On trie pour l'affichage des couleurs
                 if poids > 0:
-                    edges_green.append((name_nodes[i], name_nodes[j]))
+                    edges_green.append((nom_depart,nom_arrivee))
                 else:
-                    edges_red.append((name_nodes[i], name_nodes[j]))
+                    edges_red.append((nom_depart, nom_arrivee))
 
     # align="horizontal" force les couches à se placer sur des lignes horizontales
     pos = nx.multipartite_layout(G, subset_key="layer", align="horizontal")
@@ -58,9 +63,11 @@ def show_sbn_graph(agent_id, sbn):
     x_coords_bas = sorted([pos[n][0] for n in noeuds_bas if n in pos])
     
     # On réassigne ces coordonnées X triées à nos noeuds dans le bon ordre
-    for i, noeud in enumerate(noeuds_bas):
+    current_idx = 0
+    for noeud in noeuds_bas:
         if noeud in pos:
-            pos[noeud] = (x_coords_bas[i], pos[noeud][1])
+            pos[noeud] = (x_coords_bas[current_idx], pos[noeud][1])
+            current_idx += 1
     
     # 2. Aligner E, F et R verticalement sur la gauche
     # On prend la coordonnée X la plus à gauche (qui appartient maintenant à R)

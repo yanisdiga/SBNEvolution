@@ -14,14 +14,14 @@ from SpatialGrid import update_grid, get_neighbors
 PARAMS = {
     "TEST_NAME": "Extinction_Initiale",
     "SEED": 42,
-    "NUM_AGENTS": 2000,
-    "BASE_ENERGY": 100,
-    "DIVISION_ENERGY": 600,
+    "NUM_AGENTS": 10,
+    "BASE_ENERGY": 10000,
+    "DIVISION_ENERGY": 16000,
     "MODE_FOOD": 1,
     "N_BOOST": 10,
     "QUANTITE_BOOST": 1,
-    "PROBA_DELETION": 0.01,
-    "PROBA_INSERTION": 0.02,
+    "PROBA_DELETION": 0.01/60,
+    "PROBA_INSERTION": 0.02/60,
     "VALEUR_MAX_POIDS": 3
 }
 
