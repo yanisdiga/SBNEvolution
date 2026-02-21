@@ -1,6 +1,5 @@
 import pygame
 import random
-import math
 import numpy as np
 from Agent import Agent
 from GraphVisualisation import show_sbn_graph
