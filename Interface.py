@@ -2,11 +2,17 @@ import pygame
 
 # Fonction permettant d'afficher le bandeau en haut de l'écran avec les informations de la simulation
 def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_size, font):
-    # 1. Dessin du fond du bandeau
+    # Dessin du fond du bandeau
     pygame.draw.rect(screen, (20, 20, 20), (0, 0, width, dashboard_size-5)) # -5 pour laisser un petit gap
     pygame.draw.line(screen, (150, 150, 150), (0, dashboard_size-5), (width, dashboard_size-5), 2) # -5 pour laisser un petit gap
 
-    # 2. Informations à afficher
+    # Calcul du temps écoulé (Temps réel depuis le lancement)
+    secondes_ecoulees = pygame.time.get_ticks() // 1000
+    minutes = secondes_ecoulees // 60
+    secondes = secondes_ecoulees % 60
+    temps_txt = f"{minutes:02d}:{secondes:02d}" # Formatage 00:00
+
+    # Informations à afficher
     fps = int(clock.get_fps())
     pop = len(agents)
     mode_txt = "Photosynthèse" if params["MODE_FOOD"] == 1 else "Alimentation"
@@ -17,10 +23,12 @@ def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_
     txt_step = font.render(f"STEPS: {total_steps}", True, (200, 200, 200))
     txt_mode = font.render(f"MODE: {mode_txt}", True, (100, 200, 255))
     txt_fps  = font.render(f"FPS: {fps}", True, (255, 255, 0))
+    txt_time = font.render(f"TIME: {temps_txt}", True, (255, 255, 255))
 
-    # 3. Positionnement sur le bandeau
+    # Positionnement sur le bandeau
     screen.blit(txt_test, (20, 15))
-    screen.blit(txt_mode, (300, 15))
-    screen.blit(txt_step, (550, 15))
-    screen.blit(txt_pop,  (750, 15))
-    screen.blit(txt_fps,  (width - 100, 15))
+    screen.blit(txt_mode, (250, 15))
+    screen.blit(txt_step, (250*2, 15))
+    screen.blit(txt_pop,  (250*3, 15))
+    screen.blit(txt_time, (250*4, 15))
+    screen.blit(txt_fps,  (width-100, 15))
