@@ -55,6 +55,8 @@ class Agent:
         enfant.sbn.num_nodes = self.sbn.num_nodes
         enfant.sbn.states = self.sbn.states.copy()
         enfant.sbn.weights = self.sbn.weights.copy()
+        enfant.sbn.true_ids = self.sbn.true_ids.copy()
+        enfant.sbn.next_historical_id = self.sbn.next_historical_id
         
         # On fais en sorte que l'enfant regarde a l'inverse du parent pour ne pas se faire manger a la naissance
         enfant.angle = self.angle + 180
