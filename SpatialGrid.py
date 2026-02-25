@@ -1,7 +1,15 @@
 # On applique ces méthode car boucler sur tout les agents alors que certain sont très loin nous consommaient trop de ressources (bcp trop !)
-def update_grid(agents, CELL_SIZE):
+def update_grid(agents, foods, CELL_SIZE, mode_food):
     grid = {}
-    for agent in agents:
+    
+    # On crée une liste globale contenant d'office les agents
+    entites = agents.copy()
+    
+    # Si on est en mode alimentation, on ajoute la nourriture à cette liste
+    if mode_food == 2:
+        entites.extend(foods)
+    
+    for agent in entites:
         # Calcul de l'index de la case
         cx = int(agent.x // CELL_SIZE)
         cy = int(agent.y // CELL_SIZE)

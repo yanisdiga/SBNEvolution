@@ -5,6 +5,7 @@ from Agent import Agent
 from GraphVisualisation import show_sbn_graph
 from Interface import draw_dashboard
 from SpatialGrid import update_grid, get_neighbors
+from Food import Food
 
 # ==========================================================
 # CONFIGURATION DE LA SIMULATION
@@ -14,15 +15,15 @@ from SpatialGrid import update_grid, get_neighbors
 PARAMS = {
     "TEST_NAME": "Extinction_Initiale",
     "SEED": 42,
-    "NUM_AGENTS": 10,
-    "BASE_ENERGY": 10000,
-    "DIVISION_ENERGY": 16000,
-    "MODE_FOOD": 1,
-    "N_BOOST": 10,
-    "QUANTITE_BOOST": 1,
-    "PROBA_DELETION": 0.01/60,
-    "PROBA_INSERTION": 0.02/60,
-    "VALEUR_MAX_POIDS": 3
+    "NUM_AGENTS": 200,
+    "BASE_ENERGY": 1000,
+    "DIVISION_ENERGY": 1200,
+    "MODE_FOOD": 2,
+    "QUANTITE_BOOST": 200,
+    "PROBA_DELETION": 0.005,
+    "PROBA_INSERTION": 0.007,
+    "VALEUR_MAX_POIDS": 3,
+    "DISTANCE_VISION": 70
 }
 
 # On récupère les paramètre du dictionnaire si ils existent sinon on met les valeurs par défauts
@@ -76,6 +77,8 @@ font = pygame.font.SysFont("Arial", 18)
 
 # Liste stockant les agents
 agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT) for i in range(NUM_AGENTS)]
+NUM_FOOD = 100
+foods = [Food(random.randint(0, WIDTH), random.randint(0, HEIGHT), energy=QUANTITE_BOOST) for _ in range(NUM_FOOD)]
 
 running = True
 show_graphics = True # Variable permettant d'afficher ou non la simulation (pour aller plus vite si nécessaire)
@@ -113,7 +116,6 @@ while running:
                     
                     # Test de collision Cercle / Point sans racine carrée
                     if (dx*dx + dy*dy) <= rayon_sq:
-                        print(f"Ouverture du cerveau de l'agent {agent.id}")
                         # Appel de la fonction de visualisation du réseau sbn
                         show_sbn_graph(agent.id, agent.sbn)
                         # On a trouvé l'agent cliqué, inutile de tester les autres
@@ -128,7 +130,7 @@ while running:
             # Mélanger pour l'équité
             random.shuffle(agents)
             
-            spatial_grid = update_grid(agents, CELL_SIZE)
+            spatial_grid = update_grid(agents, foods, CELL_SIZE, MODE_FOOD)
             
             for agent in agents:
                 if not agent.alive:
@@ -155,6 +157,10 @@ while running:
                     if victim.alive:
                         victim.alive = False
                         agent.energy += victim.energy
+                    
+                        if isinstance(victim, Food):
+                            foods.remove(victim) # On enleve la nourriture du sol
+                            foods.append(Food(random.randint(0, WIDTH), random.randint(0, HEIGHT))) # On la fais réapparaître ailleurs
 
                 # Division
                 if agent.energy >= DIVISION_ENERGY:
@@ -179,15 +185,22 @@ while running:
     if show_graphics:
         screen.fill((0, 0, 0))
         # On crée un calque transparent (SRCALPHA permet de gérer l'opacité)
-        #overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
         # On le vide à chaque frame
-        #overlay.fill((0, 0, 0, 0))
+        overlay.fill((0, 0, 0, 0))
         
         # Affichage des agents
         for agent in agents:
-            agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE)
+            if DISTANCE_VISION>20:
+                agent.draw(screen, overlay, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE) # On applique l'opacité sur le cone de vision pour plus de visibilité
+            else:
+                agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE)
+            
+        if MODE_FOOD == 2:
+            for food in foods:
+                food.draw(screen, DASHBOARD_SIZE)
         
-        #screen.blit(overlay, (0, 0))
+        screen.blit(overlay, (0, 0))
         # On affiche le dashboard
         draw_dashboard(screen, clock, agents, total_steps, PARAMS, WIDTH, DASHBOARD_SIZE, font)
         # On rafraîchit l'écran une fois après la boucle des agents

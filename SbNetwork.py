@@ -76,6 +76,7 @@ class SbNetwork:
         new_weights[:n, :n] = self.weights
         # On rempli les poids du nouvelle état entre [-wmax, wmax]
         # On commence par la dernière colonne
+        
         new_weights[:, n] = np.random.randint(-wmax, wmax+1, size=n+1) # +1 car [start, stop[
         # La dernière ligne
         new_weights[n, :] = np.random.randint(-wmax, wmax+1, size=n+1) # +1 car [start, stop[
