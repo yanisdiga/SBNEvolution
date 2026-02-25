@@ -87,6 +87,7 @@ total_steps = 0 # Variable stockant le nombre de pas de la simulation
 new_id = NUM_AGENTS # Nouveau id a incrémenter à partir du nombre d'agent initiaux (pour la descendance)
 
 is_paused = False # Variable permettant de mettre en pause la simulation
+temps_simule_ms = 0
 
 # On pré-calcule le carré de la distance pour éviter les racines carrées (LENT)
 DIST_MANGER_SQ = DISTANCE_MANGER * DISTANCE_MANGER
@@ -125,6 +126,7 @@ while running:
     if not is_paused:
         for _ in range(N_ITER):
             total_steps += 1
+            temps_simule_ms += clock.get_time()
             new_enfants = []
             
             # Mélanger pour l'équité
@@ -202,7 +204,7 @@ while running:
         
         screen.blit(overlay, (0, 0))
         # On affiche le dashboard
-        draw_dashboard(screen, clock, agents, total_steps, PARAMS, WIDTH, DASHBOARD_SIZE, font)
+        draw_dashboard(screen, clock, agents, total_steps, PARAMS, WIDTH, DASHBOARD_SIZE, font, temps_simule_ms)
         # On rafraîchit l'écran une fois après la boucle des agents
         pygame.display.flip()
     

@@ -1,13 +1,13 @@
 import pygame
 
 # Fonction permettant d'afficher le bandeau en haut de l'écran avec les informations de la simulation
-def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_size, font):
+def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_size, font, temps_simule_ms):
     # Dessin du fond du bandeau
     pygame.draw.rect(screen, (20, 20, 20), (0, 0, width, dashboard_size-5)) # -5 pour laisser un petit gap
     pygame.draw.line(screen, (150, 150, 150), (0, dashboard_size-5), (width, dashboard_size-5), 2) # -5 pour laisser un petit gap
 
     # Calcul du temps écoulé (Temps réel depuis le lancement)
-    secondes_ecoulees = pygame.time.get_ticks() // 1000
+    secondes_ecoulees = temps_simule_ms // 1000
     minutes = secondes_ecoulees // 60
     secondes = secondes_ecoulees % 60
     temps_txt = f"{minutes:02d}:{secondes:02d}" # Formatage 00:00
