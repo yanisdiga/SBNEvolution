@@ -187,7 +187,7 @@ while running:
     if show_graphics:
         screen.fill((0, 0, 0))
         # On crée un calque transparent (SRCALPHA permet de gérer l'opacité)
-        overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        overlay = pygame.Surface((WIDTH, HEIGHT+DASHBOARD_SIZE), pygame.SRCALPHA)
         # On le vide à chaque frame
         overlay.fill((0, 0, 0, 0))
         
