@@ -122,7 +122,9 @@ class Agent:
                         self.proie_potentielle = other
                         break # On arrête à la première proie vue et mangeable
                 
-                
+    def eat(self, victim):
+        victim.alive = False
+        self.energy += victim.energy          
     
     def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y, tracking=False):
         if not self.alive:

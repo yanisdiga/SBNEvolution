@@ -15,7 +15,7 @@ from Food import Food
 PARAMS = {
     "TEST_NAME": "Extinction_Initiale",
     "SEED": 42,
-    "NUM_AGENTS": 200,
+    "NUM_AGENTS": 1000,
     "BASE_ENERGY": 1000,
     "DIVISION_ENERGY": 1200,
     "MODE_FOOD": 2,
@@ -144,6 +144,8 @@ while running:
             
             spatial_grid = update_grid(agents, foods, CELL_SIZE, MODE_FOOD)
             
+            eat_intentions = {} # Dictionnaire stockant l'intention de manger de chaque agent
+            
             for agent in agents:
                 if not agent.alive:
                     continue
@@ -165,12 +167,12 @@ while running:
                 # On utilise la proie qu'on a trouvée dans la boucle de vision
                 if action_eat and (agent.proie_potentielle is not None):
                     victim = agent.proie_potentielle
-                    # Vérification de sécurité (la victime est peut-être morte entre temps dans ce tour)
+                    # Vérification de sécurité
                     if victim.alive:
-                        victim.alive = False
-                        agent.energy += victim.energy
-                    
-                        if isinstance(victim, Food):
+                        if isinstance(victim, Agent):
+                            eat_intentions[agent] = agent.proie_potentielle
+                        elif isinstance(victim, Food):
+                            agent.eat(victim)
                             foods.remove(victim) # On enleve la nourriture du sol
                             foods.append(Food(random.randint(0, WIDTH), random.randint(0, HEIGHT))) # On la fais réapparaître ailleurs
 
@@ -188,6 +190,26 @@ while running:
                     enfant = agent.division(new_id, new_pos_x, new_pos_y)
                     new_id += 1
                     new_enfants.append(enfant)
+            
+            # Vérification de conflit lors de l'action "manger"
+            for agent, victim in eat_intentions.items():
+                # On vérifie que l'agent et la victime sont bien toujours vivant
+                if not agent.alive or not victim.alive: continue
+                
+                # CAS 1 : Duel
+                if eat_intentions.get(victim) == agent:
+                    if agent.energy > victim.energy:
+                        agent.eat(victim)
+                    elif agent.energy == victim.energy:
+                        if random.random()>0.5: 
+                            agent.eat(victim)
+                        else: 
+                            victim.eat(agent)
+                    else:
+                        victim.eat(agent)
+                # CAS 2 : Normal
+                else:
+                    agent.eat(victim)
             
             # Nettoyage rapide
             agents = [a for a in agents if a.alive]
