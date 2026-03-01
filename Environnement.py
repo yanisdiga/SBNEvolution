@@ -23,7 +23,7 @@ PARAMS = {
     "PROBA_DELETION": 0.005,
     "PROBA_INSERTION": 0.007,
     "VALEUR_MAX_POIDS": 3,
-    "DISTANCE_VISION": 70,
+    "DISTANCE_VISION": 30,
     "NUM_FOOD": 100
 }
 
@@ -75,6 +75,7 @@ DASHBOARD_SIZE = 50
 # --- INITIALISATION PYGAME ---
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + DASHBOARD_SIZE))
+overlay = pygame.Surface((WIDTH, HEIGHT + DASHBOARD_SIZE), pygame.SRCALPHA)
 pygame.display.set_caption("Simulation SBN Evolution")
 clock = pygame.time.Clock()
 
@@ -218,8 +219,6 @@ while running:
     # 3. AFFICHAGE (RENDU)
     if show_graphics:
         screen.fill((0, 0, 0))
-        # On crée un calque transparent (SRCALPHA permet de gérer l'opacité)
-        overlay = pygame.Surface((WIDTH, HEIGHT+DASHBOARD_SIZE), pygame.SRCALPHA)
         # On le vide à chaque frame
         overlay.fill((0, 0, 0, 0))
         
@@ -235,6 +234,7 @@ while running:
             for food in foods:
                 food.draw(screen, DASHBOARD_SIZE)
         
+        # On fusionne le calque avec le screen
         screen.blit(overlay, (0, 0))
         # On affiche le dashboard
         draw_dashboard(screen, clock, agents, total_steps, PARAMS, WIDTH, DASHBOARD_SIZE, font, temps_simule_ms)
