@@ -23,7 +23,8 @@ PARAMS = {
     "PROBA_DELETION": 0.005,
     "PROBA_INSERTION": 0.007,
     "VALEUR_MAX_POIDS": 3,
-    "DISTANCE_VISION": 70
+    "DISTANCE_VISION": 70,
+    "NUM_FOOD": 100
 }
 
 # On récupère les paramètre du dictionnaire si ils existent sinon on met les valeurs par défauts
@@ -52,6 +53,7 @@ DIVISION_ENERGY = PARAMS.get("DIVISION_ENERGY", 600)     # Palier d'énergie req
 MODE_FOOD = PARAMS.get("MODE_FOOD", 1)                   # Comportement d'alimentation (1 : Photosynthèse, 2 : Nourriture au sol)
 N_BOOST = PARAMS.get("N_BOOST", 10)                      # Fréquence (en itérations) d'apport passif d'énergie (photosynthèse)
 QUANTITE_BOOST = PARAMS.get("QUANTITE_BOOST", 1)         # Montant de l'énergie récupérée lors du boost passif
+NUM_FOOD = PARAMS.get("NUM_FOOD", 100)
 
 # --- MUTATIONS DU CERVEAU (RÉSEAU DE NEURONES) ---
 PROBA_DELETION = PARAMS.get("PROBA_DELETION", 0.01)      # Probabilité qu'un agent perde un nœud neuronal lors d'une mutation
@@ -80,7 +82,6 @@ font = pygame.font.SysFont("Arial", 18)
 
 # Liste stockant les agents
 agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT) for i in range(NUM_AGENTS)]
-NUM_FOOD = 100
 foods = [Food(random.randint(0, WIDTH), random.randint(0, HEIGHT), energy=QUANTITE_BOOST) for _ in range(NUM_FOOD)]
 
 running = True
