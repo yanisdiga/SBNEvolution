@@ -2,7 +2,7 @@ import pygame
 import random
 import numpy as np
 from Agent import Agent
-from GraphVisualisation import show_sbn_graph
+from GraphVisualisation import show_sbn_graph, show_simulation_summary
 from Interface import draw_dashboard
 from SpatialGrid import update_grid, get_neighbors
 from Food import Food
@@ -95,6 +95,12 @@ temps_simule_ms = 0
 # On pré-calcule le carré de la distance pour éviter les racines carrées (LENT)
 DIST_MANGER_SQ = DISTANCE_MANGER * DISTANCE_MANGER
 DISTANCE_VISION_SQ = DISTANCE_VISION**2
+
+# Listes pour stocker l'historique
+stats_steps = []
+stats_pop = []
+stats_size = []
+stats_energy = []
 
 while running:
     # 1. Paramétrage des touches de la simulation
@@ -213,5 +219,19 @@ while running:
         pygame.display.flip()
     
     clock.tick(FPS)
+    
+    # Statistiques
+    if total_steps % 100 == 0 and len(agents) > 0:
+        stats_steps.append(total_steps)
+        stats_pop.append(len(agents))
+        
+        # Calcul des moyennes
+        moyenne_noeuds = sum(a.sbn.num_nodes for a in agents) / len(agents)
+        moyenne_energie = sum(a.energy for a in agents) / len(agents)
+        
+        stats_size.append(moyenne_noeuds)
+        stats_energy.append(moyenne_energie)
 
 pygame.quit()
+
+show_simulation_summary(stats_steps, stats_pop, stats_size, stats_energy)

@@ -131,3 +131,35 @@ def show_sbn_graph(agent_id, sbn):
     
     # Affichage de la fenêtre
     plt.show()
+
+# Affichage des statistiques global de la simulation
+def show_simulation_summary(history_steps, history_pop, history_size, history_energy):
+    plt.figure(figsize=(12, 8))
+    plt.suptitle("Bilan de la Simulation", fontsize=16)
+
+    # --- GRAPHE 1 : Évolution de la Population ---
+    plt.subplot(2, 2, 1)
+    plt.plot(history_steps, history_pop, color='green')
+    plt.title("Population totale")
+    plt.xlabel("Nombre d'itérations")
+    plt.ylabel("Nombre d'agents")
+    plt.grid(True, alpha=0.3)
+
+    # --- GRAPHE 2 : Taille moyenne du cerveau (SBN) ---
+    plt.subplot(2, 2, 2)
+    plt.plot(history_steps, history_size, color='blue')
+    plt.title("Taille moyenne du réseau (Noeuds)")
+    plt.xlabel("Nombre d'itérations")
+    plt.ylabel("Nombre de neurones")
+    plt.grid(True, alpha=0.3)
+
+    # --- GRAPHE 3 : Énergie moyenne des agents ---
+    plt.subplot(2, 2, 3)
+    plt.plot(history_steps, history_energy, color='orange')
+    plt.title("Énergie moyenne")
+    plt.xlabel("Nombre d'itérations")
+    plt.ylabel("Unités d'énergie")
+    plt.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
