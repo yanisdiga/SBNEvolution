@@ -124,7 +124,7 @@ class Agent:
                 
                 
     
-    def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y):
+    def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y, tracking=False):
         if not self.alive:
             return
         
@@ -134,6 +134,10 @@ class Agent:
         # Affichage du cercle colorée
         ratio = max(0, min(self.energy / max_energy, 1))
         color = (int(255 * (1 - ratio)), int(255 * ratio), 0)
+        if tracking: # Si l'agent est ciblé
+            # Halo de ciblage (cercle vide plus grand)
+            pygame.draw.circle(screen, (255, 255, 255), pos, size + 10, 2)
+            
         pygame.draw.circle(screen, color, pos, size)
         
         # Affichage du cône de vision

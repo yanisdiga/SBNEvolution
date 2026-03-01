@@ -57,6 +57,9 @@ QUANTITE_BOOST = PARAMS.get("QUANTITE_BOOST", 1)         # Montant de l'énergie
 PROBA_DELETION = PARAMS.get("PROBA_DELETION", 0.01)      # Probabilité qu'un agent perde un nœud neuronal lors d'une mutation
 PROBA_INSERTION = PARAMS.get("PROBA_INSERTION", 0.02)    # Probabilité qu'un agent développe un nouveau nœud neuronal
 VALEUR_MAX_POIDS = PARAMS.get("VALEUR_MAX_POIDS", 3)     # Valeur absolue maximale des connexions créées entre les neurones
+
+# --- STATISTIQUES ET VISUALISATION ---
+TRACKING_ID = PARAMS.get("TRACKING_ID", None)
     
 # Paramètre de la grille
 CELL_SIZE = DISTANCE_VISION * 1.2  # Doit être >= DISTANCE_VISION (on met distance_vision + 20% pour avoir de la marge d'erreur)
@@ -193,10 +196,11 @@ while running:
         
         # Affichage des agents
         for agent in agents:
-            if DISTANCE_VISION>20:
-                agent.draw(screen, overlay, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE) # On applique l'opacité sur le cone de vision pour plus de visibilité
+            is_tracked = (agent.id == TRACKING_ID)
+            if DISTANCE_VISION>20: # On applique l'opacité sur le cone de vision pour plus de visibilité (si le cone est assez grand sinon on le met en blanc car il ne sera pas visible)
+                agent.draw(screen, overlay, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE, tracking=is_tracked) # On applique l'opacité sur le cone de vision pour plus de visibilité
             else:
-                agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE)
+                agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE, tracking=is_tracked)
             
         if MODE_FOOD == 2:
             for food in foods:
