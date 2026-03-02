@@ -4,7 +4,7 @@ import pygame
 from SbNetwork import SbNetwork
 
 class Agent:
-    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height):
+    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height, cost_rotate, cost_move, cost_eat, cost_neuron):
         self.id = id
         self.x = x
         self.y = y
@@ -22,9 +22,10 @@ class Agent:
         self.vision_input = 0
         
         # Cout des actions
-        self.cost_rotate = 1
-        self.cost_move = 1
-        self.cost_eat = 1
+        self.cost_rotate = cost_rotate
+        self.cost_move = cost_move
+        self.cost_eat = cost_eat
+        self.cost_neuron = cost_neuron
         
     def move(self):
         # On convertis l'angle en radian pour les calculs
@@ -47,7 +48,7 @@ class Agent:
     
     def division(self, id, x, y):
         # On crée un nouvelle agent enfant
-        enfant = Agent(id, x, y, self.energy, self.rotate_deg, self.env_width, self.env_height)
+        enfant = Agent(id, x, y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron)
         # On divise par deux l'énergie de l'enfant et du parent
         enfant.energy /= 2
         self.energy /= 2
@@ -74,6 +75,9 @@ class Agent:
         
         # On récupère les actions ordonnées par le cerveau
         action_eat, action_move, action_rotate = self.sbn.step(oeil)
+
+        # On retire pour chaque neurone activé son coût
+        self.energy -= np.sum(self.sbn.states) * self.cost_neuron
         
         # On effectue chaque action en vérifiant l'énergie et en la diminuant en fonction
         if action_rotate and self.energy >= self.cost_rotate:
