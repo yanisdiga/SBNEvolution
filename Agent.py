@@ -1,6 +1,7 @@
 import random
 import math
 import pygame
+import numpy as np
 from SbNetwork import SbNetwork
 
 class Agent:

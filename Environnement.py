@@ -54,6 +54,10 @@ MODE_FOOD = PARAMS.get("MODE_FOOD", 1)                   # Comportement d'alimen
 N_BOOST = PARAMS.get("N_BOOST", 10)                      # Fréquence (en itérations) d'apport passif d'énergie (photosynthèse)
 QUANTITE_BOOST = PARAMS.get("QUANTITE_BOOST", 1)         # Montant de l'énergie récupérée lors du boost passif
 NUM_FOOD = PARAMS.get("NUM_FOOD", 100)
+COST_MOVE = PARAMS.get("COST_MOVE", 1)
+COST_ROTATE = PARAMS.get("COST_ROTATE", 1)
+COST_EAT = PARAMS.get("COST_EAT", 1)
+COST_NEURON = PARAMS.get("COST_NEURON", 1)
 
 # --- MUTATIONS DU CERVEAU (RÉSEAU DE NEURONES) ---
 PROBA_DELETION = PARAMS.get("PROBA_DELETION", 0.01)      # Probabilité qu'un agent perde un nœud neuronal lors d'une mutation
@@ -82,7 +86,7 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 18)
 
 # Liste stockant les agents
-agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT) for i in range(NUM_AGENTS)]
+agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT, COST_ROTATE, COST_MOVE, COST_EAT, COST_NEURON) for i in range(NUM_AGENTS)]
 foods = [Food(random.randint(0, WIDTH), random.randint(0, HEIGHT), energy=QUANTITE_BOOST) for _ in range(NUM_FOOD)]
 
 running = True
