@@ -53,6 +53,17 @@ class Agent:
     def rotate(self):
         self.angle += self.rotate_deg
         self.angle %= 360 # On garde l'angle entre 0 et 360
+        
+    def eat(self, victim):
+        victim.alive = False
+        self.energy += victim.energy 
+        self.stomach += victim.energy  
+        self.digestion_quantity = self.stomach/self.digestion_rate     
+    
+    def digestion(self):
+        waste = min(self.digestion_quantity, self.stomach)
+        self.stomach -= waste
+        return waste
     
     def division(self, id, x, y):
         # On crée un nouvelle agent enfant
@@ -110,11 +121,11 @@ class Agent:
         # On retourne l'action manger pour que l'environnement puisse le savoir
         return action_eat
     
-    
-    
     def sense(self, voisins, dist_vision_sq, dist_manger_sq, angle_vision):
         self.vision_input = 0
         self.proie_potentielle = None
+        angle_regard = math.radians(self.angle)
+        angle_vision_rad = math.radians(angle_vision)
         
         for other in voisins:
             if other is self or not other.alive:
@@ -127,28 +138,14 @@ class Agent:
             
             # On regarde si dans les voisins de l'agent, il y'en a un dans son cone de vision
             if dist_sq < dist_vision_sq:
-                angle_cible = math.atan2(dy, dx)
-                angle_regard = math.radians(self.angle)
-                
+                angle_cible = math.atan2(dy, dx)  
                 diff = (angle_cible - angle_regard + math.pi) % (2 * math.pi) - math.pi
-                if abs(diff) < math.radians(angle_vision):
+                if abs(diff) < angle_vision_rad:
                     self.vision_input = 1
                     # On vérifie qu'il est a bonne distance
                     if dist_sq < dist_manger_sq:
                         self.proie_potentielle = other
                         break # On arrête à la première proie vue et mangeable
-                
-    def eat(self, victim):
-        victim.alive = False
-        self.energy += victim.energy 
-        self.stomach += victim.energy  
-        self.digestion_quantity = self.stomach/self.digestion_rate     
-    
-    def digestion(self):
-        waste = min(self.digestion_quantity, self.stomach)
-        self.stomach -= waste
-        return waste
-    
     
     def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y, tracking=False):
         if not self.alive:
