@@ -24,7 +24,8 @@ PARAMS = {
     "PROBA_INSERTION": 0.007,
     "VALEUR_MAX_POIDS": 3,
     "DISTANCE_VISION": 30,
-    "NUM_FOOD": 100
+    "NUM_FOOD": 100,
+    "DIGESTION_INTERVAL": 10
 }
 
 # On récupère les paramètre du dictionnaire si ils existent sinon on met les valeurs par défauts

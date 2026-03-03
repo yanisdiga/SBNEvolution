@@ -145,8 +145,10 @@ class Agent:
         self.digestion_quantity = self.stomach/self.digestion_rate     
     
     def digestion(self):
-        self.stomach -= self.digestion_quantity
-        return self.digestion_quantity
+        waste = min(self.digestion_quantity, self.stomach)
+        self.stomach -= waste
+        return waste
+    
     
     def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y, tracking=False):
         if not self.alive:
