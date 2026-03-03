@@ -2,6 +2,7 @@ import random
 import math
 import pygame
 import numpy as np
+import random
 from SbNetwork import SbNetwork
 
 class Agent:
@@ -65,9 +66,22 @@ class Agent:
         self.stomach -= waste
         return waste
     
-    def division(self, id, x, y):
+    def division(self, id, vision_angle):
+        # On calcule un angle sur dans la zone aveugle du parent
+        angle_enfant = (self.angle + random.uniform(vision_angle, 360 - vision_angle)) % 360 # Modulo 360 car on veut garder l'angle entre 0 et 360
+        angle_enfant_rad = math.radians(angle_enfant)
+        
+        # On utilise cet angle pour placer l'enfant à 15 pixels de distance dans une direction différente de la vision du parent
+        distance_spawn = 15
+        new_x = self.x + distance_spawn * math.cos(angle_enfant_rad)
+        new_y = self.y + distance_spawn * math.sin(angle_enfant_rad)
+        
+        # On borne avec les limites de l'environnement
+        new_x = max(0, min(new_x, self.env_width))
+        new_y = max(0, min(new_y, self.env_height))
+            
         # On crée un nouvelle agent enfant
-        enfant = Agent(id, x, y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.digestion_rate, self.digestion_interval)
+        enfant = Agent(id, new_x, new_y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.digestion_rate, self.digestion_interval)
         # On divise par deux l'énergie de l'enfant et du parent
         enfant.energy /= 2
         self.energy /= 2
@@ -78,9 +92,8 @@ class Agent:
         enfant.sbn.true_ids = self.sbn.true_ids.copy()
         enfant.sbn.next_historical_id = self.sbn.next_historical_id
         
-        # On fais en sorte que l'enfant regarde a l'inverse du parent pour ne pas se faire manger a la naissance
-        enfant.angle = self.angle + 180
-        enfant.angle %= 360 # On garde l'angle entre 0 et 360
+        # On donne à l'enfant son angle de vision
+        enfant.angle = angle_enfant
         
         return enfant
         

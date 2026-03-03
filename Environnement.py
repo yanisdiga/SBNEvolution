@@ -16,16 +16,19 @@ PARAMS = {
     "TEST_NAME": "Extinction_Initiale",
     "SEED": 42,
     "NUM_AGENTS": 200,
-    "BASE_ENERGY": 500,
-    "DIVISION_ENERGY": 1000,
-    "MODE_FOOD": 2,
-    "QUANTITE_BOOST": 200,
+    "BASE_ENERGY": 1000,
+    "DIVISION_ENERGY": 1600,
     "PROBA_DELETION": 0.005,
     "PROBA_INSERTION": 0.007,
     "VALEUR_MAX_POIDS": 3,
     "DISTANCE_VISION": 30,
-    "NUM_FOOD": 100,
-    "DIGESTION_INTERVAL": 10
+    "MODE_FOOD": 2,          # Obligatoire pour forcer la chasse
+    "COST_NEURON": 3,        # Taxe d'existence très lourde
+    "COST_MOVE": 1,          # Mouvement proportionnellement peu coûteux
+    "COST_ROTATE": 1,        
+    "NUM_FOOD": 50,          # Rareté de la ressource
+    "QUANTITE_BOOST": 300,   # Grande récompense pour ceux qui explorent et trouvent
+    "DIGESTION_INTERVAL": 15
 }
 
 # On récupère les paramètre du dictionnaire si ils existent sinon on met les valeurs par défauts
@@ -197,16 +200,7 @@ while running:
                     
                 # Division
                 if agent.energy >= DIVISION_ENERGY:
-                    # On définit la position de l'enfant lors de la division bornée entre les limites de la simulation
-                    if(random.random()< 0.5): 
-                        new_pos_x = min(agent.x + 15, WIDTH)
-                    else:
-                        new_pos_x = max(agent.x - 15, 0)
-                    if (random.random() <0.5):
-                        new_pos_y = min(agent.y + 15, HEIGHT)
-                    else:
-                        new_pos_y = max(agent.y - 15, 0)
-                    enfant = agent.division(new_id, new_pos_x, new_pos_y)
+                    enfant = agent.division(new_id, VISION_ANGLE)
                     new_id += 1
                     new_enfants.append(enfant)
             
