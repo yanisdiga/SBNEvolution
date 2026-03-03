@@ -5,7 +5,7 @@ import numpy as np
 from SbNetwork import SbNetwork
 
 class Agent:
-    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height, cost_rotate, cost_move, cost_eat, cost_neuron):
+    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height, cost_rotate, cost_move, cost_eat, cost_neuron, digestion_rate, digestion_interval):
         self.id = id
         self.x = x
         self.y = y
@@ -21,12 +21,19 @@ class Agent:
         self.alive = True
         self.proie_potentielle = None
         self.vision_input = 0
+        self.step = 0
         
         # Cout des actions
         self.cost_rotate = cost_rotate
         self.cost_move = cost_move
         self.cost_eat = cost_eat
         self.cost_neuron = cost_neuron
+        
+        # Digestion
+        self.stomach = 0
+        self.digestion_rate = digestion_rate
+        self.digestion_quantity = 0
+        self.digestion_interval = digestion_interval
         
     def move(self):
         # On convertis l'angle en radian pour les calculs
@@ -49,7 +56,7 @@ class Agent:
     
     def division(self, id, x, y):
         # On crée un nouvelle agent enfant
-        enfant = Agent(id, x, y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron)
+        enfant = Agent(id, x, y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.digestion_rate, self.digestion_interval)
         # On divise par deux l'énergie de l'enfant et du parent
         enfant.energy /= 2
         self.energy /= 2
@@ -96,9 +103,13 @@ class Agent:
         # Si l'agent n'a plus d'énergie il est donc mort
         if self.energy < 1:
             self.alive = False
-
+            
+        # On incremente le compteur de pas
+        self.step += 1
+        
         # On retourne l'action manger pour que l'environnement puisse le savoir
         return action_eat
+    
     
     
     def sense(self, voisins, dist_vision_sq, dist_manger_sq, angle_vision):
@@ -129,7 +140,13 @@ class Agent:
                 
     def eat(self, victim):
         victim.alive = False
-        self.energy += victim.energy          
+        self.energy += victim.energy 
+        self.stomach += victim.energy  
+        self.digestion_quantity = self.stomach/self.digestion_rate     
+    
+    def digestion(self):
+        self.stomach -= self.digestion_quantity
+        return self.digestion_quantity
     
     def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y, tracking=False):
         if not self.alive:

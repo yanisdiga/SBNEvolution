@@ -15,9 +15,9 @@ from Food import Food
 PARAMS = {
     "TEST_NAME": "Extinction_Initiale",
     "SEED": 42,
-    "NUM_AGENTS": 1000,
-    "BASE_ENERGY": 1000,
-    "DIVISION_ENERGY": 1200,
+    "NUM_AGENTS": 200,
+    "BASE_ENERGY": 500,
+    "DIVISION_ENERGY": 1000,
     "MODE_FOOD": 2,
     "QUANTITE_BOOST": 200,
     "PROBA_DELETION": 0.005,
@@ -58,6 +58,8 @@ COST_MOVE = PARAMS.get("COST_MOVE", 1)
 COST_ROTATE = PARAMS.get("COST_ROTATE", 1)
 COST_EAT = PARAMS.get("COST_EAT", 1)
 COST_NEURON = PARAMS.get("COST_NEURON", 1)
+DIGESTION_RATE = PARAMS.get("DIGESTION_RATE", 5)
+DIGESTION_INTERVAL = PARAMS.get("DIGESTION_INTERVAL", 10)
 
 # --- MUTATIONS DU CERVEAU (RÉSEAU DE NEURONES) ---
 PROBA_DELETION = PARAMS.get("PROBA_DELETION", 0.01)      # Probabilité qu'un agent perde un nœud neuronal lors d'une mutation
@@ -86,7 +88,7 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 18)
 
 # Liste stockant les agents
-agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT, COST_ROTATE, COST_MOVE, COST_EAT, COST_NEURON) for i in range(NUM_AGENTS)]
+agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT, COST_ROTATE, COST_MOVE, COST_EAT, COST_NEURON, DIGESTION_RATE, DIGESTION_INTERVAL) for i in range(NUM_AGENTS)]
 foods = [Food(random.randint(0, WIDTH), random.randint(0, HEIGHT), energy=QUANTITE_BOOST) for _ in range(NUM_FOOD)]
 
 running = True
@@ -179,8 +181,14 @@ while running:
                         elif isinstance(victim, Food):
                             agent.eat(victim)
                             foods.remove(victim) # On enleve la nourriture du sol
-                            foods.append(Food(random.randint(0, WIDTH), random.randint(0, HEIGHT))) # On la fais réapparaître ailleurs
-
+                            #foods.append(Food(random.randint(0, WIDTH), random.randint(0, HEIGHT))) # On la fais réapparaître ailleurs
+                            
+                # Digestion
+                if agent.stomach > 0 and agent.step % agent.digestion_interval==0:
+                    waste = agent.digestion()
+                    new_food = Food(agent.x, agent.y, energy=waste)
+                    foods.append(new_food)
+                    
                 # Division
                 if agent.energy >= DIVISION_ENERGY:
                     # On définit la position de l'enfant lors de la division bornée entre les limites de la simulation
