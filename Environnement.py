@@ -2,9 +2,9 @@ import pygame
 import random
 import numpy as np
 from Agent import Agent
-from GraphVisualisation import show_sbn_graph, show_simulation_summary
-from Interface import draw_dashboard
-from SpatialGrid import update_grid, get_neighbors
+from GraphVisualisation import *
+from Interface import *
+from SpatialGrid import *
 from Food import Food
 
 # ==========================================================
@@ -119,6 +119,11 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE: # Espace pour faire Pause/Dépause
                 is_paused = not is_paused
+                if not show_graphics: show_graphics_off(screen, font, WIDTH, HEIGHT, is_paused, DASHBOARD_SIZE)
+            elif event.key == pygame.K_g:   # Touche G pour activer/désactiver le rendu
+                show_graphics = not show_graphics     
+                if not show_graphics: show_graphics_off(screen, font, WIDTH, HEIGHT, is_paused, DASHBOARD_SIZE)
+                    
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # 1 correspond au clic gauche
                 is_paused = True
@@ -251,11 +256,13 @@ while running:
         screen.blit(overlay, (0, 0))
         # On affiche le dashboard
         draw_dashboard(screen, clock, agents, total_steps, PARAMS, WIDTH, DASHBOARD_SIZE, font, temps_simule_ms)
+        
+        if is_paused: graphics_pause(screen, font, DASHBOARD_SIZE)
+        
         # On rafraîchit l'écran une fois après la boucle des agents
         pygame.display.flip()
-    
-    clock.tick(FPS)
-    
+        clock.tick(FPS)
+        
     # Statistiques
     if total_steps % 100 == 0 and len(agents) > 0:
         stats_steps.append(total_steps)
@@ -267,6 +274,11 @@ while running:
         
         stats_size.append(moyenne_noeuds)
         stats_energy.append(moyenne_energie)
+        
+        if not show_graphics:
+            secondes_ecoulees = temps_simule_ms // 1000
+            fps_actuel = int(clock.get_fps())
+            print(f"[{secondes_ecoulees}s] Step: {total_steps} | Pop: {len(agents)} | Énergie Moy: {moyenne_energie:.0f} | Noeuds Moy: {moyenne_noeuds:.1f}")
 
 pygame.quit()
 

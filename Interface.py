@@ -32,3 +32,15 @@ def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_
     screen.blit(txt_pop,  (250*3, 15))
     screen.blit(txt_time, (250*4, 15))
     screen.blit(txt_fps,  (width-100, 15))
+
+def show_graphics_off(screen, font, width, height, is_paused, dashboard_size):
+    screen.fill((15, 15, 15)) # Fond très sombre
+    txt_off = font.render(" RENDU DÉSACTIVÉ (Calcul Intensif) - Appuyez sur 'G' pour réactiver ", True, (150, 150, 150))
+    screen.blit(txt_off, (width // 2 - txt_off.get_width() // 2, height // 2)) # On centre le texte
+    if is_paused: graphics_pause(screen, font, dashboard_size)
+    pygame.display.flip() 
+
+def graphics_pause(screen, font, dashboard_size):
+    # Texte jaune avec un fond gris foncé pour bien se détacher sans éblouir
+    txt_pause = font.render(" SIMULATION EN PAUSE (Espace pour reprendre) ", True, (255, 200, 0), (40, 40, 40))
+    screen.blit(txt_pause, (20, dashboard_size + 15))
