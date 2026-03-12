@@ -62,6 +62,7 @@ COST_MOVE = PARAMS.get("COST_MOVE", 1)
 COST_ROTATE = PARAMS.get("COST_ROTATE", 1)
 COST_EAT = PARAMS.get("COST_EAT", 1)
 COST_NEURON = PARAMS.get("COST_NEURON", 1)
+COST_METABOLISM = PARAMS.get("COST_METABOLISM", 1)
 DIGESTION_RATE = PARAMS.get("DIGESTION_RATE", 5)
 DIGESTION_INTERVAL = PARAMS.get("DIGESTION_INTERVAL", 10)
 
@@ -92,7 +93,7 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 18)
 
 # Liste stockant les agents
-agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT, COST_ROTATE, COST_MOVE, COST_EAT, COST_NEURON, DIGESTION_RATE, DIGESTION_INTERVAL) for i in range(NUM_AGENTS)]
+agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT, COST_ROTATE, COST_MOVE, COST_EAT, COST_NEURON, COST_METABOLISM, DIGESTION_RATE, DIGESTION_INTERVAL) for i in range(NUM_AGENTS)]
 foods = [Food(random.randint(0, WIDTH), random.randint(0, HEIGHT), energy=QUANTITE_BOOST) for _ in range(NUM_FOOD)]
 
 running = True

@@ -6,7 +6,7 @@ import random
 from SbNetwork import SbNetwork
 
 class Agent:
-    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height, cost_rotate, cost_move, cost_eat, cost_neuron, digestion_rate, digestion_interval):
+    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height, cost_rotate, cost_move, cost_eat, cost_neuron, cost_metabolism, digestion_rate, digestion_interval):
         self.id = id
         self.x = x
         self.y = y
@@ -29,6 +29,7 @@ class Agent:
         self.cost_move = cost_move
         self.cost_eat = cost_eat
         self.cost_neuron = cost_neuron
+        self.cost_metabolism = cost_metabolism
         
         # Digestion
         self.stomach = 0
@@ -81,7 +82,7 @@ class Agent:
         new_y = max(0, min(new_y, self.env_height))
             
         # On crée un nouvelle agent enfant
-        enfant = Agent(id, new_x, new_y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.digestion_rate, self.digestion_interval)
+        enfant = Agent(id, new_x, new_y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.cost_metabolism, self.digestion_rate, self.digestion_interval)
         # On divise par deux l'énergie de l'enfant et du parent
         enfant.energy /= 2
         self.energy /= 2
