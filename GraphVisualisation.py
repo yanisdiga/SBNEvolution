@@ -133,7 +133,7 @@ def show_sbn_graph(agent_id, sbn):
     plt.show()
 
 # Affichage des statistiques global de la simulation
-def show_simulation_summary(history_steps, history_pop, history_size, history_energy):
+def show_simulation_summary(history_steps, history_pop, history_size, history_energy, history_nodes_activated):
     plt.figure(figsize=(12, 8))
     plt.suptitle("Bilan de la Simulation", fontsize=16)
 
@@ -161,5 +161,13 @@ def show_simulation_summary(history_steps, history_pop, history_size, history_en
     plt.ylabel("Unités d'énergie")
     plt.grid(True, alpha=0.3)
 
+    # --- GRAPHE 4 : Nombre de noeuds moyen activé par agents ---
+    plt.subplot(2, 2, 4)
+    plt.plot(history_steps, history_nodes_activated, color='red')
+    plt.title("Nombre de neurones moyen activé")
+    plt.xlabel("Nombre d'itérations")
+    plt.ylabel("Nombre de neurones")
+    plt.grid(True, alpha=0.3)
+    
     plt.tight_layout()
     plt.show()
