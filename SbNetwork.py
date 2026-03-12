@@ -65,6 +65,15 @@ class SbNetwork:
             self.deletion()
         if (random.random() < pi):
             self.insertion(wmax)
+    
+    def evolution(self, pw, wmax):
+        if (random.random() < pw):
+            self.weight_update(wmax)
+    
+    def weight_update(self, wmax):
+        entry_node = random.randint(0, self.num_nodes-1)
+        exit_node = random.randint(0, self.num_nodes-1)
+        self.weights[entry_node, exit_node] += random.randint(-1, 1)
             
     def insertion(self, wmax):
         n = self.num_nodes

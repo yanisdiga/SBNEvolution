@@ -16,8 +16,8 @@ PARAMS = {
     "TEST_NAME": "Extinction_Initiale",
     "SEED": 42,
     "NUM_AGENTS": 200,
-    "BASE_ENERGY": 1000,
-    "DIVISION_ENERGY": 1600,
+    "BASE_ENERGY": 10000,
+    "DIVISION_ENERGY": 6000,
     "PROBA_DELETION": 0.005,
     "PROBA_INSERTION": 0.007,
     "VALEUR_MAX_POIDS": 3,
@@ -69,6 +69,7 @@ DIGESTION_INTERVAL = PARAMS.get("DIGESTION_INTERVAL", 10)
 # --- MUTATIONS DU CERVEAU (RÉSEAU DE NEURONES) ---
 PROBA_DELETION = PARAMS.get("PROBA_DELETION", 0.01)      # Probabilité qu'un agent perde un nœud neuronal lors d'une mutation
 PROBA_INSERTION = PARAMS.get("PROBA_INSERTION", 0.02)    # Probabilité qu'un agent développe un nouveau nœud neuronal
+PROBA_EVOLUTION = PARAMS.get("PROBA_EVOLUTION", 0.02)    # Probabilité qu'un agent fasse évoluer un de ses poids
 VALEUR_MAX_POIDS = PARAMS.get("VALEUR_MAX_POIDS", 3)     # Valeur absolue maximale des connexions créées entre les neurones
 
 # --- STATISTIQUES ET VISUALISATION ---
@@ -178,7 +179,7 @@ while running:
                 agent.sense(neighbors, DISTANCE_VISION_SQ, DIST_MANGER_SQ, VISION_ANGLE)
                 
                 # Décision manger
-                action_eat = agent.update(agent.vision_input, PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
+                action_eat = agent.update(agent.vision_input, PROBA_DELETION, PROBA_INSERTION, PROBA_EVOLUTION, VALEUR_MAX_POIDS)
                 
                 # Manger
                 # On utilise la proie qu'on a trouvée dans la boucle de vision
@@ -201,7 +202,7 @@ while running:
                     
                 # Division
                 if agent.energy >= DIVISION_ENERGY:
-                    enfant = agent.division(new_id, VISION_ANGLE)
+                    enfant = agent.division(new_id, VISION_ANGLE, PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
                     new_id += 1
                     new_enfants.append(enfant)
             

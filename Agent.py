@@ -67,7 +67,7 @@ class Agent:
         self.stomach -= waste
         return waste
     
-    def division(self, id, vision_angle):
+    def division(self, id, vision_angle, pd, pi, wmax):
         # On calcule un angle sur dans la zone aveugle du parent
         angle_enfant = (self.angle + random.uniform(vision_angle, 360 - vision_angle)) % 360 # Modulo 360 car on veut garder l'angle entre 0 et 360
         angle_enfant_rad = math.radians(angle_enfant)
@@ -96,15 +96,19 @@ class Agent:
         # On donne à l'enfant son angle de vision
         enfant.angle = angle_enfant
         
+        # On fais évoluer l'enfant a la naissance
+        self.sbn.mutation(pd, pi, wmax)
+        
         return enfant
         
-    def update(self, oeil, pd, pi, wmax):
+    def update(self, oeil, pd, pi, pw, wmax):
         # Si l'agent est mort on ne fais rien
         if not self.alive:
             return
         
         # On appelle la mutation
-        self.sbn.mutation(pd, pi, wmax)
+        #self.sbn.mutation(pd, pi, wmax)
+        self.sbn.evolution(pw, wmax)
         
         # On récupère les actions ordonnées par le cerveau
         action_eat, action_move, action_rotate = self.sbn.step(oeil)
