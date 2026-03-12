@@ -259,22 +259,25 @@ while running:
         pygame.display.flip()
         clock.tick(FPS)
         
-    # Statistiques
+        # 4. Statistiques
     if total_steps % 100 == 0 and len(agents) > 0:
         stats_steps.append(total_steps)
         stats_pop.append(len(agents))
+        agent_max = max(a.step for a in agents)
+        age_max = max(a.step for a in agents)
         
         # Calcul des moyennes
         moyenne_noeuds = sum(a.sbn.num_nodes for a in agents) / len(agents)
         moyenne_energie = sum(a.energy for a in agents) / len(agents)
-        
+        moyenne_noeuds_actif = sum(sum(a.sbn.states) for a in agents) / len(agents)
         stats_size.append(moyenne_noeuds)
         stats_energy.append(moyenne_energie)
+        stats_node_activated.append(moyenne_noeuds_actif)
         
         if not show_graphics:
             secondes_ecoulees = temps_simule_ms // 1000
             fps_actuel = int(clock.get_fps())
-            print(f"[{secondes_ecoulees}s] Step: {total_steps} | Pop: {len(agents)} | Énergie Moy: {moyenne_energie:.0f} | Noeuds Moy: {moyenne_noeuds:.1f}")
+            print(f"[{secondes_ecoulees}s] Step: {total_steps} | Pop: {len(agents)} | Énergie Moy: {moyenne_energie:.0f} | Noeuds Moy: {moyenne_noeuds:.1f} | Âge Max: {age_max}")
 
 pygame.quit()
 
