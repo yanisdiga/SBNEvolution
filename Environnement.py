@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 import numpy as np
 from Agent import Agent
 from GraphVisualisation import *
@@ -11,6 +12,7 @@ from Food import Food
 # CONFIGURATION DE LA SIMULATION
 # ==========================================================
 
+# Paramètre de la simulation
 PARAMS = {
     "TEST_NAME": "Infinite_Life_Cycle",
     "SEED": 42,
@@ -66,7 +68,7 @@ BASE_ENERGY = PARAMS.get("BASE_ENERGY", 100)             # Capital énergétique
 DIVISION_ENERGY = PARAMS.get("DIVISION_ENERGY", 600)     # Palier d'énergie requis pour déclencher la reproduction par division
 MODE_FOOD = PARAMS.get("MODE_FOOD", 1)                   # Comportement d'alimentation (1 : Photosynthèse, 2 : Nourriture au sol)
 PHOTOSYNTHESE_INTERVAL = PARAMS.get("PHOTOSYNTHESE_INTERVAL", 10)   # Fréquence (en itérations) d'apport passif d'énergie (photosynthèse)
-ALIMENTATION_BOOST = PARAMS.get("ALIMENTATION_BOOST", 1)          # Montant de l'énergie récupérée lorsqu'un agent mange au sol
+ALIMENTATION_BOOST = PARAMS.get("ALIMENTATION", 1)          # Montant de l'énergie récupérée lorsqu'un agent mange au sol
 PHOTOSYNTHESE_BOOST = PARAMS.get("PHOTOSYNTHESE_BOOST", 1)  # Montant de l'énergie récupérée lors du boost passif
 PHOTOSYNTHESE_DECREASE = PARAMS.get("PHOTOSYNTHESE_DECREASE", 0.01)
 PHOTOSYNTHESE_INTERVAL_UPDATE = PARAMS.get("PHOTOSYNTHESE_INTERVAL_UPDATE", 100)
@@ -118,7 +120,7 @@ total_steps = 0 # Variable stockant le nombre de pas de la simulation
 
 new_id = NUM_AGENTS # Nouveau id a incrémenter à partir du nombre d'agent initiaux (pour la descendance)
 
-is_paused = False # Variable permettant de mettre en pause la simulation
+is_paused = True # Variable permettant de mettre en pause la simulation
 temps_simule_ms = 0
 
 vision_cone = True
@@ -137,6 +139,8 @@ stats_size = []
 stats_energy = []
 stats_node_activated = []
 
+hiver = False
+
 while running:
     # 1. Paramétrage des touches de la simulation
     for event in pygame.event.get():    
@@ -149,8 +153,9 @@ while running:
             elif event.key == pygame.K_g:   # Touche G pour activer/désactiver le rendu
                 show_graphics = not show_graphics     
                 if not show_graphics: show_graphics_off(screen, font, WIDTH, HEIGHT, is_paused, DASHBOARD_SIZE)
-            elif event.key == pygame.K_v:   # Touche V pour activer/désactiver le rendu des cone de vision
+            elif event.key == pygame.K_v:   # Touche G pour activer/désactiver le rendu graphique des cones de vision
                 vision_cone = not vision_cone
+                    
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # 1 correspond au clic gauche
                 is_paused = True
@@ -185,7 +190,7 @@ while running:
             spatial_grid = update_grid(agents, foods, CELL_SIZE, MODE_FOOD)
             
             eat_intentions = {} # Dictionnaire stockant l'intention de manger de chaque agent
-            
+
             if MODE_FOOD == 3:
                 # if total_steps > 10000 and total_steps % 100 == 0:
                 if total_steps % PHOTOSYNTHESE_INTERVAL_UPDATE == 0:
@@ -236,7 +241,8 @@ while running:
                     
                 # Division
                 if agent.energy >= DIVISION_ENERGY:
-                    enfant = agent.division(new_id, VISION_ANGLE, PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
+                    enfant = agent.division(new_id, VISION_ANGLE)
+                    enfant.sbn.mutation(PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
                     new_id += 1
                     new_enfants.append(enfant)
             
@@ -259,7 +265,7 @@ while running:
                 # CAS 2 : Normal
                 else:
                     agent.eat(victim)
-                    
+            
             # Nettoyage rapide
             if ACTIVE_CORPSE:
                 for a in agents:
@@ -270,8 +276,8 @@ while running:
                         foods.append(Food(a.x, a.y, energy=a.stomach))
                         # On vide l'estomac pour éviter les doublons si le code repasse dessus
                         a.stomach = 0 
-            
-            # Nettoyage rapide
+
+            # Ensuite, on fait ton nettoyage habituel
             agents = [a for a in agents if a.alive]
             agents.extend(new_enfants)
         
@@ -304,7 +310,7 @@ while running:
         pygame.display.flip()
         clock.tick(FPS)
         
-        # 4. Statistiques
+    # 4. Statistiques
     if total_steps % 100 == 0 and len(agents) > 0:
         stats_steps.append(total_steps)
         stats_pop.append(len(agents))

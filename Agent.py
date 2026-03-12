@@ -58,9 +58,10 @@ class Agent:
         
     def eat(self, victim):
         victim.alive = False
-        self.energy += victim.energy 
-        self.stomach += victim.energy  
-        self.digestion_quantity = self.stomach/self.digestion_rate     
+        new_energy = victim.energy
+        self.energy += new_energy*0.6
+        self.stomach += new_energy*0.4 
+        self.digestion_quantity = self.stomach/self.digestion_rate   
     
     def digestion(self):
         waste = min(self.digestion_quantity, self.stomach)
@@ -105,6 +106,8 @@ class Agent:
         # Si l'agent est mort on ne fais rien
         if not self.alive:
             return
+        
+        self.energy -= self.cost_metabolism
         
         # On appelle la mutation
         #self.sbn.mutation(pd, pi, wmax)
