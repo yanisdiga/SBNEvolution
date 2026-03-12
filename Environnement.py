@@ -32,7 +32,7 @@ PARAMS = {
     "COST_EAT": 0,   
     "COST_METABOLISM": 0,   
     "NUM_FOOD": 20,
-    "ALIMENTATION_BOOST": 100,
+    "ALIMENTATION_BOOST": 1,
     "PHOTOSYNTHESE_BOOST": 5,
     "PHOTOSYNTHESE_MIN": 0,
     "PHOTOSYNTHESE_DECREASE": 0.0004,
@@ -241,7 +241,7 @@ while running:
                     
                 # Division
                 if agent.energy >= DIVISION_ENERGY:
-                    enfant = agent.division(new_id, VISION_ANGLE, PROBA_INSERTION, PROBA_DELETION, VALEUR_MAX_POIDS)
+                    enfant = agent.division(new_id, VISION_ANGLE, PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
                     new_id += 1
                     new_enfants.append(enfant)
             

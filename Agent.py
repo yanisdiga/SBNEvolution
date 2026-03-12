@@ -98,7 +98,7 @@ class Agent:
         enfant.angle = angle_enfant
         
         # On fais évoluer l'enfant a la naissance
-        self.sbn.mutation(pd, pi, wmax)
+        enfant.sbn.mutation(pd, pi, wmax)
         
         return enfant
         

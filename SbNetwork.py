@@ -110,5 +110,3 @@ class SbNetwork:
         self.weights = np.delete(self.weights, node_to_delete, axis=1)
         self.num_nodes -=1
         self.true_ids.pop(node_to_delete)
-        
-        
