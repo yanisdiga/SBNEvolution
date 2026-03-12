@@ -65,6 +65,7 @@ COST_NEURON = PARAMS.get("COST_NEURON", 1)
 COST_METABOLISM = PARAMS.get("COST_METABOLISM", 1)
 DIGESTION_RATE = PARAMS.get("DIGESTION_RATE", 5)
 DIGESTION_INTERVAL = PARAMS.get("DIGESTION_INTERVAL", 10)
+ACTIVE_CORPS = PARAMS.get("ACTIVE_CORPS", True)
 
 # --- MUTATIONS DU CERVEAU (RÉSEAU DE NEURONES) ---
 PROBA_DELETION = PARAMS.get("PROBA_DELETION", 0.01)      # Probabilité qu'un agent perde un nœud neuronal lors d'une mutation
@@ -226,6 +227,17 @@ while running:
                 # CAS 2 : Normal
                 else:
                     agent.eat(victim)
+                    
+            # Nettoyage rapide
+            if ACTIVE_CORPSE:
+                for a in agents:
+                    # On cible ceux qui viennent de mourir (famine ou vieillesse) 
+                    # et qui n'ont pas été "vidés" par un prédateur
+                    if not a.alive and a.stomach > 0:
+                        # On dépose le contenu de leur estomac au sol
+                        foods.append(Food(a.x, a.y, energy=a.stomach))
+                        # On vide l'estomac pour éviter les doublons si le code repasse dessus
+                        a.stomach = 0 
             
             # Nettoyage rapide
             agents = [a for a in agents if a.alive]
