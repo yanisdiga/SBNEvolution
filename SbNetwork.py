@@ -76,11 +76,15 @@ class SbNetwork:
         new_weights[:n, :n] = self.weights
         # On rempli les poids du nouvelle état entre [-wmax, wmax]
         # On commence par la dernière colonne
-        
-        new_weights[:, n] = np.random.randint(-wmax, wmax+1, size=n+1) # +1 car [start, stop[
+        # Méthode chaotique
+        #new_weights[:, n] = np.random.randint(-wmax, wmax+1, size=n+1) # +1 car [start, stop[
         # La dernière ligne
-        new_weights[n, :] = np.random.randint(-wmax, wmax+1, size=n+1) # +1 car [start, stop[
-        
+        #new_weights[n, :] = np.random.randint(-wmax, wmax+1, size=n+1) # +1 car [start, stop[
+        # Méthode de relais
+        entry_node = random.randint(0, self.num_nodes-1)
+        exit_node = random.randint(0, self.num_nodes-1)
+        new_weights[entry_node, n] = random.randint(-wmax, wmax)
+        new_weights[n, exit_node] = random.randint(-wmax, wmax)
         # On remplace l'ancienne matrice de poids par la nouvelle
         self.weights = new_weights
         self.num_nodes += 1 # On met a jour le nombre de noeud
