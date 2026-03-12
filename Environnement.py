@@ -68,7 +68,7 @@ BASE_ENERGY = PARAMS.get("BASE_ENERGY", 100)             # Capital énergétique
 DIVISION_ENERGY = PARAMS.get("DIVISION_ENERGY", 600)     # Palier d'énergie requis pour déclencher la reproduction par division
 MODE_FOOD = PARAMS.get("MODE_FOOD", 1)                   # Comportement d'alimentation (1 : Photosynthèse, 2 : Nourriture au sol)
 PHOTOSYNTHESE_INTERVAL = PARAMS.get("PHOTOSYNTHESE_INTERVAL", 10)   # Fréquence (en itérations) d'apport passif d'énergie (photosynthèse)
-ALIMENTATION_BOOST = PARAMS.get("ALIMENTATION", 1)          # Montant de l'énergie récupérée lorsqu'un agent mange au sol
+ALIMENTATION_BOOST = PARAMS.get("ALIMENTATION_BOOST", 1)          # Montant de l'énergie récupérée lorsqu'un agent mange au sol
 PHOTOSYNTHESE_BOOST = PARAMS.get("PHOTOSYNTHESE_BOOST", 1)  # Montant de l'énergie récupérée lors du boost passif
 PHOTOSYNTHESE_DECREASE = PARAMS.get("PHOTOSYNTHESE_DECREASE", 0.01)
 PHOTOSYNTHESE_INTERVAL_UPDATE = PARAMS.get("PHOTOSYNTHESE_INTERVAL_UPDATE", 100)
@@ -241,8 +241,7 @@ while running:
                     
                 # Division
                 if agent.energy >= DIVISION_ENERGY:
-                    enfant = agent.division(new_id, VISION_ANGLE)
-                    enfant.sbn.mutation(PROBA_DELETION, PROBA_INSERTION, VALEUR_MAX_POIDS)
+                    enfant = agent.division(new_id, VISION_ANGLE, PROBA_INSERTION, PROBA_DELETION, VALEUR_MAX_POIDS)
                     new_id += 1
                     new_enfants.append(enfant)
             

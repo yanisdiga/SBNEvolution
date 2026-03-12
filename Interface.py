@@ -15,9 +15,13 @@ def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_
     # Informations à afficher
     fps = int(clock.get_fps())
     pop = len(agents)
-    if params["MODE_FOOD"] == 1 : mode_txt = "Photosynthèse" 
-    elif params["MODE_FOOD"] == 2: mode_txt = "Alimentation"
-    else: mode_txt = "Mixte"
+    MODE_FOOD = params.get("MODE_FOOD", 1)
+    if MODE_FOOD == 1:
+        mode_txt = "Photosynthèse" 
+    elif MODE_FOOD == 2:
+        mode_txt = "Alimentation" 
+    else:
+        mode_txt = "Mixte"
     
     # Rendu des textes
     txt_test = font.render(f"TEST: {params['TEST_NAME']}", True, (255, 255, 255))
