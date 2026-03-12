@@ -289,7 +289,7 @@ while running:
             else:
                 agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE, vision_cone=vision_cone, tracking=is_tracked)
             
-        if MODE_FOOD == 2:
+        if MODE_FOOD == 2 or MODE_FOOD == 3:
             for food in foods:
                 food.draw(screen, DASHBOARD_SIZE)
         

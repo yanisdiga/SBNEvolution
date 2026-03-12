@@ -6,7 +6,7 @@ def update_grid(agents, foods, CELL_SIZE, mode_food):
     entites = agents.copy()
     
     # Si on est en mode alimentation, on ajoute la nourriture à cette liste
-    if mode_food == 2:
+    if mode_food == 2 or mode_food == 3:
         entites.extend(foods)
     
     for agent in entites:
