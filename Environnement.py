@@ -65,7 +65,7 @@ COST_NEURON = PARAMS.get("COST_NEURON", 1)
 COST_METABOLISM = PARAMS.get("COST_METABOLISM", 1)
 DIGESTION_RATE = PARAMS.get("DIGESTION_RATE", 5)
 DIGESTION_INTERVAL = PARAMS.get("DIGESTION_INTERVAL", 10)
-ACTIVE_CORPS = PARAMS.get("ACTIVE_CORPS", True)
+ACTIVE_CORPSE = PARAMS.get("ACTIVE_CORPSE", True)
 
 # --- MUTATIONS DU CERVEAU (RÉSEAU DE NEURONES) ---
 PROBA_DELETION = PARAMS.get("PROBA_DELETION", 0.01)      # Probabilité qu'un agent perde un nœud neuronal lors d'une mutation
@@ -107,6 +107,8 @@ new_id = NUM_AGENTS # Nouveau id a incrémenter à partir du nombre d'agent init
 is_paused = False # Variable permettant de mettre en pause la simulation
 temps_simule_ms = 0
 
+vision_cone = True
+
 # On pré-calcule le carré de la distance pour éviter les racines carrées (LENT)
 DIST_MANGER_SQ = DISTANCE_MANGER * DISTANCE_MANGER
 DISTANCE_VISION_SQ = DISTANCE_VISION**2
@@ -130,7 +132,8 @@ while running:
             elif event.key == pygame.K_g:   # Touche G pour activer/désactiver le rendu
                 show_graphics = not show_graphics     
                 if not show_graphics: show_graphics_off(screen, font, WIDTH, HEIGHT, is_paused, DASHBOARD_SIZE)
-                    
+            elif event.key == pygame.K_v:   # Touche V pour activer/désactiver le rendu des cone de vision
+                vision_cone = not vision_cone
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # 1 correspond au clic gauche
                 is_paused = True
@@ -253,9 +256,9 @@ while running:
         for agent in agents:
             is_tracked = (agent.id == TRACKING_ID)
             if DISTANCE_VISION>20: # On applique l'opacité sur le cone de vision pour plus de visibilité (si le cone est assez grand sinon on le met en blanc car il ne sera pas visible)
-                agent.draw(screen, overlay, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE, tracking=is_tracked) # On applique l'opacité sur le cone de vision pour plus de visibilité
+                agent.draw(screen, overlay, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE, vision_cone=vision_cone, tracking=is_tracked) # On applique l'opacité sur le cone de vision pour plus de visibilité
             else:
-                agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE, tracking=is_tracked)
+                agent.draw(screen, screen, TAILLE_AGENT, DISTANCE_VISION, VISION_ANGLE, BASE_ENERGY, DASHBOARD_SIZE, vision_cone=vision_cone, tracking=is_tracked)
             
         if MODE_FOOD == 2:
             for food in foods:

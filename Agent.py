@@ -165,7 +165,7 @@ class Agent:
                         self.proie_potentielle = other
                         break # On arrête à la première proie vue et mangeable
     
-    def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y, tracking=False):
+    def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y, vision_cone, tracking=False):
         if not self.alive:
             return
         
@@ -181,12 +181,14 @@ class Agent:
             
         pygame.draw.circle(screen, color, pos, size)
         
-        # Affichage du cône de vision
-        left_rad = math.radians(self.angle - fov)
-        right_rad = math.radians(self.angle + fov)
-        
-        p_left = (self.x + vision_dist * math.cos(left_rad), (self.y + offset_y) + vision_dist * math.sin(left_rad))
-        p_right = (self.x + vision_dist * math.cos(right_rad), (self.y + offset_y) + vision_dist * math.sin(right_rad))
-        
-        cone_color = (255, 0, 0, 40) if self.vision_input == 1 else (255, 255, 255, 20)
-        pygame.draw.polygon(overlay, cone_color, [pos, p_left, p_right])
+        if vision_cone:
+            # Affichage du cône de vision
+            left_rad = math.radians(self.angle - fov)
+            right_rad = math.radians(self.angle + fov)
+            
+            p_left = (self.x + vision_dist * math.cos(left_rad), (self.y + offset_y) + vision_dist * math.sin(left_rad))
+            p_right = (self.x + vision_dist * math.cos(right_rad), (self.y + offset_y) + vision_dist * math.sin(right_rad))
+            
+            cone_color = (255, 0, 0, 40) if self.vision_input == 1 else (255, 255, 255, 20)
+            pygame.draw.polygon(overlay, cone_color, [pos, p_left, p_right])
+
