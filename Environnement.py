@@ -115,6 +115,7 @@ stats_steps = []
 stats_pop = []
 stats_size = []
 stats_energy = []
+stats_node_activated = []
 
 while running:
     # 1. Paramétrage des touches de la simulation
@@ -281,4 +282,4 @@ while running:
 
 pygame.quit()
 
-show_simulation_summary(stats_steps, stats_pop, stats_size, stats_energy)
+show_simulation_summary(stats_steps, stats_pop, stats_size, stats_energy, stats_node_activated)
