@@ -11,24 +11,34 @@ from Food import Food
 # CONFIGURATION DE LA SIMULATION
 # ==========================================================
 
-# Paramètre de la simulation
 PARAMS = {
-    "TEST_NAME": "Extinction_Initiale",
+    "TEST_NAME": "Infinite_Life_Cycle",
     "SEED": 42,
     "NUM_AGENTS": 200,
-    "BASE_ENERGY": 10000,
-    "DIVISION_ENERGY": 6000,
-    "PROBA_DELETION": 0.005,
-    "PROBA_INSERTION": 0.007,
+    "BASE_ENERGY": 1000,
+    "DIVISION_ENERGY": 2000,
+    "PROBA_DELETION": 0.05,
+    "PROBA_INSERTION": 0.1,
+    "PROBA_EVOLUTION": 0.05,
     "VALEUR_MAX_POIDS": 3,
-    "DISTANCE_VISION": 30,
-    "MODE_FOOD": 2,          # Obligatoire pour forcer la chasse
-    "COST_NEURON": 3,        # Taxe d'existence très lourde
-    "COST_MOVE": 1,          # Mouvement proportionnellement peu coûteux
-    "COST_ROTATE": 1,        
-    "NUM_FOOD": 50,          # Rareté de la ressource
-    "QUANTITE_BOOST": 300,   # Grande récompense pour ceux qui explorent et trouvent
-    "DIGESTION_INTERVAL": 15
+    "DISTANCE_VISION": 70,
+    "VISION_ANGLE": 30,
+    "MODE_FOOD": 3,
+    "COST_NEURON": 0.5,
+    "COST_MOVE": 1,
+    "COST_ROTATE": 1,  
+    "COST_EAT": 0,   
+    "COST_METABOLISM": 0,   
+    "NUM_FOOD": 20,
+    "ALIMENTATION_BOOST": 100,
+    "PHOTOSYNTHESE_BOOST": 5,
+    "PHOTOSYNTHESE_MIN": 0,
+    "PHOTOSYNTHESE_DECREASE": 0.0004,
+    "PHOTOSYNTHESE_INTERVAL": 1,
+    "PHOTOSYNTHESE_INTERVAL_UPDATE": 1,
+    "DIGESTION_INTERVAL": 30,
+    "DIGESTION_RATE": 3,
+    "ACTIVE_CORPSE": False
 }
 
 # On récupère les paramètre du dictionnaire si ils existent sinon on met les valeurs par défauts
@@ -55,14 +65,18 @@ NUM_AGENTS = PARAMS.get("NUM_AGENTS", 1000)              # Taille de la populati
 BASE_ENERGY = PARAMS.get("BASE_ENERGY", 100)             # Capital énergétique de départ pour les premiers agents
 DIVISION_ENERGY = PARAMS.get("DIVISION_ENERGY", 600)     # Palier d'énergie requis pour déclencher la reproduction par division
 MODE_FOOD = PARAMS.get("MODE_FOOD", 1)                   # Comportement d'alimentation (1 : Photosynthèse, 2 : Nourriture au sol)
-N_BOOST = PARAMS.get("N_BOOST", 10)                      # Fréquence (en itérations) d'apport passif d'énergie (photosynthèse)
-QUANTITE_BOOST = PARAMS.get("QUANTITE_BOOST", 1)         # Montant de l'énergie récupérée lors du boost passif
+PHOTOSYNTHESE_INTERVAL = PARAMS.get("PHOTOSYNTHESE_INTERVAL", 10)   # Fréquence (en itérations) d'apport passif d'énergie (photosynthèse)
+ALIMENTATION_BOOST = PARAMS.get("ALIMENTATION_BOOST", 1)          # Montant de l'énergie récupérée lorsqu'un agent mange au sol
+PHOTOSYNTHESE_BOOST = PARAMS.get("PHOTOSYNTHESE_BOOST", 1)  # Montant de l'énergie récupérée lors du boost passif
+PHOTOSYNTHESE_DECREASE = PARAMS.get("PHOTOSYNTHESE_DECREASE", 0.01)
+PHOTOSYNTHESE_INTERVAL_UPDATE = PARAMS.get("PHOTOSYNTHESE_INTERVAL_UPDATE", 100)
+PHOTOSYNTHESE_MIN = PARAMS.get("PHOTOSYNTHESE_MIN", 0)
 NUM_FOOD = PARAMS.get("NUM_FOOD", 100)
 COST_MOVE = PARAMS.get("COST_MOVE", 1)
 COST_ROTATE = PARAMS.get("COST_ROTATE", 1)
 COST_EAT = PARAMS.get("COST_EAT", 1)
 COST_NEURON = PARAMS.get("COST_NEURON", 1)
-COST_METABOLISM = PARAMS.get("COST_METABOLISM", 1)
+COST_METABOLISM = PARAMS.get("COST_METABOLISM", 0.05)
 DIGESTION_RATE = PARAMS.get("DIGESTION_RATE", 5)
 DIGESTION_INTERVAL = PARAMS.get("DIGESTION_INTERVAL", 10)
 ACTIVE_CORPSE = PARAMS.get("ACTIVE_CORPSE", True)
@@ -70,7 +84,7 @@ ACTIVE_CORPSE = PARAMS.get("ACTIVE_CORPSE", True)
 # --- MUTATIONS DU CERVEAU (RÉSEAU DE NEURONES) ---
 PROBA_DELETION = PARAMS.get("PROBA_DELETION", 0.01)      # Probabilité qu'un agent perde un nœud neuronal lors d'une mutation
 PROBA_INSERTION = PARAMS.get("PROBA_INSERTION", 0.02)    # Probabilité qu'un agent développe un nouveau nœud neuronal
-PROBA_EVOLUTION = PARAMS.get("PROBA_EVOLUTION", 0.02)    # Probabilité qu'un agent fasse évoluer un de ses poids
+PROBA_EVOLUTION = PARAMS.get("PROBA_EVOLUTION", 0.02)    # Probabilité qu'un agent développe un nouveau nœud neuronal
 VALEUR_MAX_POIDS = PARAMS.get("VALEUR_MAX_POIDS", 3)     # Valeur absolue maximale des connexions créées entre les neurones
 
 # --- STATISTIQUES ET VISUALISATION ---
@@ -96,7 +110,7 @@ font = pygame.font.SysFont("Arial", 18)
 
 # Liste stockant les agents
 agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT, COST_ROTATE, COST_MOVE, COST_EAT, COST_NEURON, COST_METABOLISM, DIGESTION_RATE, DIGESTION_INTERVAL) for i in range(NUM_AGENTS)]
-foods = [Food(random.randint(0, WIDTH), random.randint(0, HEIGHT), energy=QUANTITE_BOOST) for _ in range(NUM_FOOD)]
+foods = [Food(random.randint(0, WIDTH), random.randint(0, HEIGHT), energy=ALIMENTATION_BOOST) for _ in range(NUM_FOOD)]
 
 running = True
 show_graphics = True # Variable permettant d'afficher ou non la simulation (pour aller plus vite si nécessaire)
@@ -112,6 +126,9 @@ vision_cone = True
 # On pré-calcule le carré de la distance pour éviter les racines carrées (LENT)
 DIST_MANGER_SQ = DISTANCE_MANGER * DISTANCE_MANGER
 DISTANCE_VISION_SQ = DISTANCE_VISION**2
+
+# On récupère la valeur original de la photosynthèse
+PHOTOSYNTHESE_INITIAL_BOOST = PHOTOSYNTHESE_BOOST
 
 # Listes pour stocker l'historique
 stats_steps = []
@@ -169,14 +186,26 @@ while running:
             
             eat_intentions = {} # Dictionnaire stockant l'intention de manger de chaque agent
             
+            if MODE_FOOD == 3:
+                # if total_steps > 10000 and total_steps % 100 == 0:
+                if total_steps % PHOTOSYNTHESE_INTERVAL_UPDATE == 0:
+                    if PHOTOSYNTHESE_BOOST <= PHOTOSYNTHESE_MIN:
+                        hiver = False
+                    elif PHOTOSYNTHESE_BOOST >= PHOTOSYNTHESE_INITIAL_BOOST: 
+                        hiver = True
+                    if hiver:
+                        PHOTOSYNTHESE_BOOST = max(PHOTOSYNTHESE_BOOST-PHOTOSYNTHESE_DECREASE, PHOTOSYNTHESE_MIN)
+                    else:
+                        PHOTOSYNTHESE_BOOST = min(PHOTOSYNTHESE_BOOST+PHOTOSYNTHESE_DECREASE, PHOTOSYNTHESE_INITIAL_BOOST)
+            
             for agent in agents:
                 if not agent.alive:
                     continue
                 
                 # Boost d'énergie tout les N_BOOST pas de temps
-                if MODE_FOOD == 1:
-                    if total_steps % N_BOOST == 0:
-                        agent.energy += QUANTITE_BOOST
+                if MODE_FOOD == 1 or MODE_FOOD == 3:
+                    if total_steps % PHOTOSYNTHESE_INTERVAL == 0:
+                        agent.energy += PHOTOSYNTHESE_BOOST
                 
                 # On récupère la liste des cases proche de nous
                 neighbors = get_neighbors(agent, spatial_grid, CELL_SIZE)
