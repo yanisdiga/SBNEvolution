@@ -18,29 +18,24 @@ PARAMS = {
     "SEED": 42,
     "NUM_AGENTS": 200,
     "BASE_ENERGY": 1000,
-    "DIVISION_ENERGY": 2000,
+    "DIVISION_ENERGY": 1500,
     "PROBA_DELETION": 0.05,
     "PROBA_INSERTION": 0.1,
     "PROBA_EVOLUTION": 0.05,
     "VALEUR_MAX_POIDS": 3,
     "DISTANCE_VISION": 70,
     "VISION_ANGLE": 30,
-    "MODE_FOOD": 3,
-    "COST_NEURON": 0.5,
-    "COST_MOVE": 1,
-    "COST_ROTATE": 1,  
-    "COST_EAT": 0,   
-    "COST_METABOLISM": 0,   
-    "NUM_FOOD": 20,
-    "ALIMENTATION_BOOST": 1,
-    "PHOTOSYNTHESE_BOOST": 5,
-    "PHOTOSYNTHESE_MIN": 0,
-    "PHOTOSYNTHESE_DECREASE": 0.0004,
-    "PHOTOSYNTHESE_INTERVAL": 1,
-    "PHOTOSYNTHESE_INTERVAL_UPDATE": 1,
-    "DIGESTION_INTERVAL": 30,
+    "MODE_FOOD": 2,
+    "COST_NEURON": 0.3,
+    "COST_MOVE": 0.02,
+    "COST_ROTATE": 0.1,  
+    "COST_EAT": 0.01,   
+    "COST_METABOLISM": 0.1,   
+    "NUM_FOOD": 10,
+    "ALIMENTATION_BOOST": 500,
+    "DIGESTION_INTERVAL": 120,
+    "DIGESTION_MIN": 500,
     "DIGESTION_RATE": 3,
-    "ACTIVE_CORPSE": False
 }
 
 # On récupère les paramètre du dictionnaire si ils existent sinon on met les valeurs par défauts
@@ -79,6 +74,7 @@ COST_ROTATE = PARAMS.get("COST_ROTATE", 1)
 COST_EAT = PARAMS.get("COST_EAT", 1)
 COST_NEURON = PARAMS.get("COST_NEURON", 1)
 COST_METABOLISM = PARAMS.get("COST_METABOLISM", 0.05)
+DIGESTION_MIN = PARAMS.get("DIGESTION_MIN", 40)
 DIGESTION_RATE = PARAMS.get("DIGESTION_RATE", 5)
 DIGESTION_INTERVAL = PARAMS.get("DIGESTION_INTERVAL", 10)
 ACTIVE_CORPSE = PARAMS.get("ACTIVE_CORPSE", True)
@@ -111,7 +107,7 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 18)
 
 # Liste stockant les agents
-agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT, COST_ROTATE, COST_MOVE, COST_EAT, COST_NEURON, COST_METABOLISM, DIGESTION_RATE, DIGESTION_INTERVAL) for i in range(NUM_AGENTS)]
+agents = [Agent(i, random.randint(0, WIDTH), random.randint(0, HEIGHT), BASE_ENERGY, ROTATE_DEG, WIDTH, HEIGHT, COST_ROTATE, COST_MOVE, COST_EAT, COST_NEURON, COST_METABOLISM) for i in range(NUM_AGENTS)]
 foods = [Food(random.randint(0, WIDTH), random.randint(0, HEIGHT), energy=ALIMENTATION_BOOST) for _ in range(NUM_FOOD)]
 
 running = True
@@ -120,7 +116,7 @@ total_steps = 0 # Variable stockant le nombre de pas de la simulation
 
 new_id = NUM_AGENTS # Nouveau id a incrémenter à partir du nombre d'agent initiaux (pour la descendance)
 
-is_paused = True # Variable permettant de mettre en pause la simulation
+is_paused = False # Variable permettant de mettre en pause la simulation
 temps_simule_ms = 0
 
 vision_cone = True
@@ -138,8 +134,11 @@ stats_pop = []
 stats_size = []
 stats_energy = []
 stats_node_activated = []
+stats_global_energy = []
 
 hiver = False
+
+digestion_calendar = {} # Calendrier des déchets a activer (fil d'attente)
 
 while running:
     # 1. Paramétrage des touches de la simulation
@@ -183,6 +182,13 @@ while running:
             total_steps += 1
             temps_simule_ms += clock.get_time()
             new_enfants = []
+            
+            # Activations des déchets
+            if total_steps in digestion_calendar:
+                for waste_to_activate in digestion_calendar[total_steps]:
+                    waste_to_activate.active = True
+                # On vide la mémoire du calendrier pour ce tour
+                del digestion_calendar[total_steps]
             
             # Mélanger pour l'équité
             random.shuffle(agents)
@@ -234,10 +240,17 @@ while running:
                             #foods.append(Food(random.randint(0, WIDTH), random.randint(0, HEIGHT))) # On la fais réapparaître ailleurs
                             
                 # Digestion
-                if agent.stomach > 0 and agent.step % agent.digestion_interval==0:
+                if agent.stomach > DIGESTION_MIN:
                     waste = agent.digestion()
-                    new_food = Food(agent.x, agent.y, energy=waste)
+                    new_food = Food(agent.x, agent.y, energy=waste, active=False)
                     foods.append(new_food)
+                    
+                    target_step = total_steps + DIGESTION_INTERVAL
+                    if target_step not in digestion_calendar:
+                        digestion_calendar[target_step] = []
+                    
+                    # On l'ajoute au calendrier
+                    digestion_calendar[target_step].append(new_food)
                     
                 # Division
                 if agent.energy >= DIVISION_ENERGY:
@@ -270,11 +283,20 @@ while running:
                 for a in agents:
                     # On cible ceux qui viennent de mourir (famine ou vieillesse) 
                     # et qui n'ont pas été "vidés" par un prédateur
-                    if not a.alive and a.stomach > 0:
+                    if not a.alive and a.stomach+a.energy != 0:
                         # On dépose le contenu de leur estomac au sol
-                        foods.append(Food(a.x, a.y, energy=a.stomach))
+                        agent_rest = a.stomach + a.energy
+                        new_food = Food(a.x, a.y, energy=agent_rest, active=False)
+                        foods.append(new_food)
                         # On vide l'estomac pour éviter les doublons si le code repasse dessus
-                        a.stomach = 0 
+                        a.stomach = 0
+                        
+                        target_step = total_steps + DIGESTION_INTERVAL
+                        if target_step not in digestion_calendar:
+                            digestion_calendar[target_step] = []
+                        
+                        # On l'ajoute au calendrier
+                        digestion_calendar[target_step].append(new_food)
 
             # Ensuite, on fait ton nettoyage habituel
             agents = [a for a in agents if a.alive]

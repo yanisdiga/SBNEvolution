@@ -7,7 +7,8 @@ def update_grid(agents, foods, CELL_SIZE, mode_food):
     
     # Si on est en mode alimentation, on ajoute la nourriture à cette liste
     if mode_food == 2 or mode_food == 3:
-        entites.extend(foods)
+        # On n'ajoute que les nourritures dont l'attribut 'active' est True (mangeable)
+        entites.extend([f for f in foods if f.active])
     
     for agent in entites:
         # Calcul de l'index de la case

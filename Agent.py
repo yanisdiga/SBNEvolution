@@ -6,7 +6,7 @@ import random
 from SbNetwork import SbNetwork
 
 class Agent:
-    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height, cost_rotate, cost_move, cost_eat, cost_neuron, cost_metabolism, digestion_rate, digestion_interval):
+    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height, cost_rotate, cost_move, cost_eat, cost_neuron, cost_metabolism):
         self.id = id
         self.x = x
         self.y = y
@@ -33,9 +33,6 @@ class Agent:
         
         # Digestion
         self.stomach = 0
-        self.digestion_rate = digestion_rate
-        self.digestion_quantity = 0
-        self.digestion_interval = digestion_interval
         
     def move(self):
         # On convertis l'angle en radian pour les calculs
@@ -58,14 +55,12 @@ class Agent:
         
     def eat(self, victim):
         victim.alive = False
-        new_energy = victim.energy
-        self.energy += new_energy*0.6
-        self.stomach += new_energy*0.4 
-        self.digestion_quantity = self.stomach/self.digestion_rate   
+        self.energy += victim.energy
+        victim.energy = 0
     
     def digestion(self):
-        waste = min(self.digestion_quantity, self.stomach)
-        self.stomach -= waste
+        waste = self.stomach
+        self.stomach = 0
         return waste
     
     def division(self, id, vision_angle, pd, pi, wmax):
@@ -83,7 +78,7 @@ class Agent:
         new_y = max(0, min(new_y, self.env_height))
             
         # On crée un nouvelle agent enfant
-        enfant = Agent(id, new_x, new_y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.cost_metabolism, self.digestion_rate, self.digestion_interval)
+        enfant = Agent(id, new_x, new_y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.cost_metabolism)
         # On divise par deux l'énergie de l'enfant et du parent
         enfant.energy /= 2
         self.energy /= 2
@@ -108,7 +103,7 @@ class Agent:
             return
         
         self.energy -= self.cost_metabolism
-        
+        lost_energy = self.cost_metabolism
         # On appelle la mutation
         #self.sbn.mutation(pd, pi, wmax)
         self.sbn.evolution(pw, wmax)
@@ -117,27 +112,35 @@ class Agent:
         action_eat, action_move, action_rotate = self.sbn.step(oeil)
 
         # On retire pour chaque neurone activé son coût
-        self.energy -= np.sum(self.sbn.states) * self.cost_neuron
+        value_cost_neuron = np.sum(self.sbn.states) * self.cost_neuron
+        lost_energy += value_cost_neuron
+        self.energy -= value_cost_neuron
         
         # On effectue chaque action en vérifiant l'énergie et en la diminuant en fonction
         if action_rotate and self.energy >= self.cost_rotate:
             self.rotate()
             self.energy -= self.cost_rotate
+            lost_energy += self.cost_rotate
         if action_move and self.energy >= self.cost_move: 
             self.move()
             self.energy -= self.cost_move
+            lost_energy += self.cost_move
         if action_eat:
             if self.energy >= self.cost_eat:
                 self.energy -= self.cost_eat
+                lost_energy += self.cost_eat
             else:
                 action_eat = 0
         
         # Si l'agent n'a plus d'énergie il est donc mort
-        if self.energy < 1:
+        if self.energy <= 0:
             self.alive = False
             
         # On incremente le compteur de pas
         self.step += 1
+        
+        # On incrémente l'estomac avec l'énergie dépensée
+        self.stomach += lost_energy
         
         # On retourne l'action manger pour que l'environnement puisse le savoir
         return action_eat
