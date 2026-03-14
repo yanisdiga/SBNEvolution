@@ -26,7 +26,7 @@ PARAMS = {
     "DISTANCE_VISION": 70,
     "VISION_ANGLE": 30,
     "MODE_FOOD": 2,
-    "COST_NEURON": 0.3,
+    "COST_NEURON": 0.6,
     "COST_MOVE": 0.02,
     "COST_ROTATE": 0.1,  
     "COST_EAT": 0.01,   
@@ -154,6 +154,8 @@ while running:
                 if not show_graphics: show_graphics_off(screen, font, WIDTH, HEIGHT, is_paused, DASHBOARD_SIZE)
             elif event.key == pygame.K_v:   # Touche G pour activer/désactiver le rendu graphique des cones de vision
                 vision_cone = not vision_cone
+            elif event.key == pygame.K_s:
+                show_simulation_summary(stats_steps, stats_pop, stats_size, stats_energy, stats_node_activated, stats_global_energy)
                     
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # 1 correspond au clic gauche
@@ -337,6 +339,10 @@ while running:
         stats_pop.append(len(agents))
         agent_max = max(a.step for a in agents)
         age_max = max(a.step for a in agents)
+        energy_agent = sum(a.energy + a.stomach for a in agents)
+        energy_sol = sum(f.energy for f in foods)
+        energy_total = energy_agent + energy_sol
+        
         
         # Calcul des moyennes
         moyenne_noeuds = sum(a.sbn.num_nodes for a in agents) / len(agents)
@@ -345,6 +351,7 @@ while running:
         stats_size.append(moyenne_noeuds)
         stats_energy.append(moyenne_energie)
         stats_node_activated.append(moyenne_noeuds_actif)
+        stats_global_energy.append(energy_total)
         
         if not show_graphics:
             secondes_ecoulees = temps_simule_ms // 1000
@@ -353,4 +360,4 @@ while running:
 
 pygame.quit()
 
-show_simulation_summary(stats_steps, stats_pop, stats_size, stats_energy, stats_node_activated)
+show_simulation_summary(stats_steps, stats_pop, stats_size, stats_energy, stats_node_activated, stats_global_energy)

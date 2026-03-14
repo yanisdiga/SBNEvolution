@@ -133,12 +133,12 @@ def show_sbn_graph(agent_id, sbn):
     plt.show()
 
 # Affichage des statistiques global de la simulation
-def show_simulation_summary(history_steps, history_pop, history_size, history_energy, history_nodes_activated):
+def show_simulation_summary(history_steps, history_pop, history_size, history_energy, history_nodes_activated, history_global_energy):
     plt.figure(figsize=(12, 8))
     plt.suptitle("Bilan de la Simulation", fontsize=16)
 
     # --- GRAPHE 1 : Évolution de la Population ---
-    plt.subplot(2, 2, 1)
+    plt.subplot(3, 2, 1)
     plt.plot(history_steps, history_pop, color='green')
     plt.title("Population totale")
     plt.xlabel("Nombre d'itérations")
@@ -146,7 +146,7 @@ def show_simulation_summary(history_steps, history_pop, history_size, history_en
     plt.grid(True, alpha=0.3)
 
     # --- GRAPHE 2 : Taille moyenne du cerveau (SBN) ---
-    plt.subplot(2, 2, 2)
+    plt.subplot(3, 2, 2)
     plt.plot(history_steps, history_size, color='blue')
     plt.title("Taille moyenne du réseau (Noeuds)")
     plt.xlabel("Nombre d'itérations")
@@ -154,7 +154,7 @@ def show_simulation_summary(history_steps, history_pop, history_size, history_en
     plt.grid(True, alpha=0.3)
 
     # --- GRAPHE 3 : Énergie moyenne des agents ---
-    plt.subplot(2, 2, 3)
+    plt.subplot(3, 2, 3)
     plt.plot(history_steps, history_energy, color='orange')
     plt.title("Énergie moyenne")
     plt.xlabel("Nombre d'itérations")
@@ -162,11 +162,22 @@ def show_simulation_summary(history_steps, history_pop, history_size, history_en
     plt.grid(True, alpha=0.3)
 
     # --- GRAPHE 4 : Nombre de noeuds moyen activé par agents ---
-    plt.subplot(2, 2, 4)
+    plt.subplot(3, 2, 4)
     plt.plot(history_steps, history_nodes_activated, color='red')
     plt.title("Nombre de neurones moyen activé")
     plt.xlabel("Nombre d'itérations")
     plt.ylabel("Nombre de neurones")
+    plt.grid(True, alpha=0.3)
+    
+    # --- GRAPHE 5 : Energie global du système ---
+    plt.subplot(3, 2, 5)
+    plt.plot(history_steps, history_global_energy, color='purple')
+    plt.title("Energie global du système")
+    plt.xlabel("Nombre d'itérations")
+    plt.ylabel("Energie disponible")
+    val_initiale = history_global_energy[0]
+    plt.ylim(val_initiale - 10, val_initiale + 10)
+    plt.ticklabel_format(useOffset=False, style='plain', axis='y')
     plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
