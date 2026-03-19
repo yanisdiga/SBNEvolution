@@ -18,15 +18,15 @@ PARAMS = {
     "SEED": 42,
     "NUM_AGENTS": 200,
     "BASE_ENERGY": 1000,
-    "DIVISION_ENERGY": 1500,
+    "DIVISION_ENERGY": 3000,
     "PROBA_DELETION": 0.05,
-    "PROBA_INSERTION": 0.1,
+    "PROBA_INSERTION": 0.05,
     "PROBA_EVOLUTION": 0.05,
     "VALEUR_MAX_POIDS": 3,
     "DISTANCE_VISION": 70,
     "VISION_ANGLE": 30,
     "MODE_FOOD": 2,
-    "COST_NEURON": 0.6,
+    "COST_NEURON": 0.3,
     "COST_MOVE": 0.02,
     "COST_ROTATE": 0.1,  
     "COST_EAT": 0.01,   
@@ -34,8 +34,7 @@ PARAMS = {
     "NUM_FOOD": 10,
     "ALIMENTATION_BOOST": 500,
     "DIGESTION_INTERVAL": 120,
-    "DIGESTION_MIN": 500,
-    "DIGESTION_RATE": 3,
+    "DIGESTION_MIN": 250
 }
 
 # On récupère les paramètre du dictionnaire si ils existent sinon on met les valeurs par défauts
@@ -184,6 +183,9 @@ while running:
             total_steps += 1
             temps_simule_ms += clock.get_time()
             new_enfants = []
+            
+            if total_steps % 50000 == 0:
+                save_nodes_influence(agents, total_steps)
             
             # Activations des déchets
             if total_steps in digestion_calendar:
