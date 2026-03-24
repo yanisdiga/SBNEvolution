@@ -1,6 +1,8 @@
 import pygame
 import random
 import math
+import json
+import os
 import numpy as np
 from Agent import Agent
 from GraphVisualisation import *
@@ -97,6 +99,31 @@ np.random.seed(SEED) # Pareil pour le random de numpy
 # Dashboard d'information
 DASHBOARD_SIZE = 50
 
+# --- SIMULATION SAVE ---
+# Création du dossier de sauvegarde et sauvegarde des paramètres
+RESULT_FOLDER = "results"
+os.makedirs(RESULT_FOLDER, exist_ok=True)
+BASE_TEST_NAME = TEST_NAME
+SIMULATION_SAVE_FOLDER = os.path.join(RESULT_FOLDER, TEST_NAME)
+
+if os.path.exists(SIMULATION_SAVE_FOLDER):
+    count = 1
+    # On cherche le premier numéro disponible
+    while os.path.exists(os.path.join(RESULT_FOLDER, f"{BASE_TEST_NAME}_{count}")):
+        count += 1
+    # On met à jour le nom final
+    TEST_NAME = f"{BASE_TEST_NAME}_{count}"
+    SIMULATION_SAVE_FOLDER  = os.path.join(RESULT_FOLDER, TEST_NAME)
+
+PARAMS["TEST_NAME"] = TEST_NAME
+
+os.makedirs(SIMULATION_SAVE_FOLDER)
+
+# On sauvegarde le dictionnaire dans un fichier parameters.json
+chemin_json = os.path.join(SIMULATION_SAVE_FOLDER, "parameters.json")
+with open(chemin_json, "w", encoding="utf-8") as f:
+    json.dump(PARAMS, f, indent=4)
+
 # --- INITIALISATION PYGAME ---
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + DASHBOARD_SIZE))
@@ -186,7 +213,7 @@ while running:
             new_enfants = []
             
             if total_steps % 50000 == 0:
-                save_nodes_influence(agents, total_steps)
+                save_nodes_influence(agents, total_steps, SIMULATION_SAVE_FOLDER)
             
             # Activations des déchets
             if total_steps in digestion_calendar:

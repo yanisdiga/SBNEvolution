@@ -4,10 +4,10 @@ import numpy as np
 import csv
 import os
 
-def save_nodes_influence(pop, iteration):
-    folder = "exports/"
+def save_nodes_influence(pop, iteration, test_name):
+    folder = os.path.join(test_name, "exports")
     if not os.path.exists(folder):
-        os.makedirs(folder)
+        os.makedirs(folder, exist_ok=True)
     header = [
         "ID_Agent", "Pos_X", "Pos_Y",
         "Oeil_Avancer", "Oeil_Rotation",
@@ -15,7 +15,7 @@ def save_nodes_influence(pop, iteration):
         "Avancer_Oeil", "Rotation_Oeil"
     ]
     
-    file_name = f"{folder}agents_save_{iteration}.csv"
+    file_name = os.path.join(folder, f"agents_save_{iteration}.csv")
     
     with open(file_name, mode="w", newline='', encoding="utf-8") as fichier_csv:
         writer = csv.writer(fichier_csv, delimiter=',')
