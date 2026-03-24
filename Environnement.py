@@ -7,6 +7,7 @@ from GraphVisualisation import *
 from Interface import *
 from SpatialGrid import *
 from Food import Food
+from ExportData import *
 
 # ==========================================================
 # CONFIGURATION DE LA SIMULATION
