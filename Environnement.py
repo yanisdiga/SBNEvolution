@@ -31,7 +31,7 @@ PARAMS = {
     "COST_ROTATE": 0.1,  
     "COST_EAT": 0.01,   
     "COST_METABOLISM": 0.1,   
-    "NUM_FOOD": 10,
+    "NUM_FOOD": 0,
     "ALIMENTATION_BOOST": 500,
     "DIGESTION_INTERVAL": 120,
     "DIGESTION_MIN": 250

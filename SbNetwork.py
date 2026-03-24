@@ -74,6 +74,7 @@ class SbNetwork:
         entry_node = random.randint(0, self.num_nodes-1)
         exit_node = random.randint(0, self.num_nodes-1)
         self.weights[entry_node, exit_node] += random.randint(-1, 1)
+        self.weights[entry_node, exit_node] = np.clip(self.weights[entry_node, exit_node], -wmax, wmax)
             
     def insertion(self, wmax):
         n = self.num_nodes
