@@ -135,7 +135,7 @@ def show_sbn_graph(agent_id, sbn):
     plt.show()
 
 # Affichage des statistiques global de la simulation
-def show_simulation_summary(history_steps, history_pop, history_size, history_energy, history_nodes_activated, history_global_energy):
+def show_simulation_summary(history_steps, history_pop, history_size, history_energy, history_nodes_activated, history_global_energy, chemin_sauvegarde):
     plt.figure(figsize=(12, 8))
     plt.suptitle("Bilan de la Simulation", fontsize=16)
 
@@ -183,4 +183,5 @@ def show_simulation_summary(history_steps, history_pop, history_size, history_en
     plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.show()
+    plt.savefig(chemin_sauvegarde, dpi=150)
+    plt.close()

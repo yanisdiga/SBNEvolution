@@ -29,8 +29,8 @@ PARAMS = {
     "DISTANCE_VISION": 70,
     "VISION_ANGLE": 30,
     "MODE_FOOD": 2,
-    "COST_NEURON": 0.3,
-    "COST_MOVE": 0.02,
+    "COST_NEURON": 0.25,
+    "COST_MOVE": 0.05,
     "COST_ROTATE": 0.1,  
     "COST_EAT": 0.01,   
     "COST_METABOLISM": 0.1,   
@@ -390,4 +390,5 @@ while running:
 
 pygame.quit()
 
-show_simulation_summary(stats_steps, stats_pop, stats_size, stats_energy, stats_node_activated, stats_global_energy)
+summary_save_folder = os.path.join(SIMULATION_SAVE_FOLDER, "simulation_summary.png")
+show_simulation_summary(stats_steps, stats_pop, stats_size, stats_energy, stats_node_activated, stats_global_energy, summary_save_folder)
