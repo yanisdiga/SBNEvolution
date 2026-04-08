@@ -196,5 +196,5 @@ def lancer_pipeline_analyse(dossier_simulation):
 
 if __name__ == "__main__":
     sns.set_theme(style="whitegrid")
-    DOSSIER_SIMULATION = "results/Infinite_Life_Cycle_1" 
+    DOSSIER_SIMULATION = "results/No_weights_cap_higher_cost_neuron_and_10_foods" 
     lancer_pipeline_analyse(DOSSIER_SIMULATION)

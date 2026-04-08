@@ -17,7 +17,7 @@ from ExportData import *
 
 # Paramètre de la simulation
 PARAMS = {
-    "TEST_NAME": "Infinite_Life_Cycle",
+    "TEST_NAME": "No_weights_cap_higher_cost_neuron",
     "SEED": 42,
     "NUM_AGENTS": 200,
     "BASE_ENERGY": 1000,
@@ -29,12 +29,12 @@ PARAMS = {
     "DISTANCE_VISION": 70,
     "VISION_ANGLE": 30,
     "MODE_FOOD": 2,
-    "COST_NEURON": 0.25,
-    "COST_MOVE": 0.05,
+    "COST_NEURON": 0.3,
+    "COST_MOVE": 0.02,
     "COST_ROTATE": 0.1,  
     "COST_EAT": 0.01,   
     "COST_METABOLISM": 0.1,   
-    "NUM_FOOD": 0,
+    "NUM_FOOD": 10,
     "ALIMENTATION_BOOST": 500,
     "DIGESTION_INTERVAL": 120,
     "DIGESTION_MIN": 250
@@ -354,8 +354,14 @@ while running:
         
         # On fusionne le calque avec le screen
         screen.blit(overlay, (0, 0))
+        # On calcul le nombre de neurones en moyenne
+        pop = len(agents)
+        if pop > 0:
+            mean_nodes = sum(a.sbn.num_nodes for a in agents) / pop
+        else:
+            mean_nodes = 0.0
         # On affiche le dashboard
-        draw_dashboard(screen, clock, agents, total_steps, PARAMS, WIDTH, DASHBOARD_SIZE, font, temps_simule_ms)
+        draw_dashboard(screen, clock, pop, total_steps, mean_nodes, PARAMS, WIDTH, DASHBOARD_SIZE, font, temps_simule_ms)
         
         if is_paused: graphics_pause(screen, font, DASHBOARD_SIZE)
         

@@ -1,7 +1,7 @@
 import pygame
 
 # Fonction permettant d'afficher le bandeau en haut de l'écran avec les informations de la simulation
-def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_size, font, temps_simule_ms):
+def draw_dashboard(screen, clock, pop, total_steps, mean_nodes, params, width, dashboard_size, font, temps_simule_ms):
     # Dessin du fond du bandeau
     pygame.draw.rect(screen, (20, 20, 20), (0, 0, width, dashboard_size-5)) # -5 pour laisser un petit gap
     pygame.draw.line(screen, (150, 150, 150), (0, dashboard_size-5), (width, dashboard_size-5), 2) # -5 pour laisser un petit gap
@@ -14,7 +14,6 @@ def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_
 
     # Informations à afficher
     fps = int(clock.get_fps())
-    pop = len(agents)
     MODE_FOOD = params.get("MODE_FOOD", 1)
     if MODE_FOOD == 1:
         mode_txt = "Photosynthèse" 
@@ -28,14 +27,16 @@ def draw_dashboard(screen, clock, agents, total_steps, params, width, dashboard_
     txt_pop  = font.render(f"POPULATION: {pop}", True, (0, 255, 100) if pop > 0 else (255, 50, 50))
     txt_step = font.render(f"STEPS: {total_steps}", True, (200, 200, 200))
     txt_mode = font.render(f"MODE: {mode_txt}", True, (100, 200, 255))
+    txt_neurones = font.render(f"NOEUDS MOY: {mean_nodes:.1f}", True, (200, 150, 255))
     txt_fps  = font.render(f"FPS: {fps}", True, (255, 255, 0))
     txt_time = font.render(f"TIME: {temps_txt}", True, (255, 255, 255))
 
     # Positionnement sur le bandeau
     screen.blit(txt_test, (20, 15))
-    screen.blit(txt_mode, (250, 15))
+    screen.blit(txt_mode, (250*1.4, 15))
     screen.blit(txt_step, (250*2, 15))
-    screen.blit(txt_pop,  (250*3, 15))
+    screen.blit(txt_pop,  (250*2.5, 15))
+    screen.blit(txt_neurones, (250*3.25, 15))
     screen.blit(txt_time, (250*4, 15))
     screen.blit(txt_fps,  (width-100, 15))
 
