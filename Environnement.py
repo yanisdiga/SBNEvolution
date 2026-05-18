@@ -17,8 +17,8 @@ from ExportData import *
 
 # Paramètre de la simulation
 PARAMS = {
-    "TEST_NAME": "No_weights_cap_higher_cost_neuron",
-    "SEED": 42,
+    "TEST_NAME": "Weights_cap_seed",
+    "SEED": 45,
     "NUM_AGENTS": 200,
     "BASE_ENERGY": 1000,
     "DIVISION_ENERGY": 3000,
