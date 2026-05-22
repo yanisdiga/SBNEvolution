@@ -152,10 +152,10 @@ def lancer_pipeline_analyse(dossier_simulation):
     # Récupération des fichiers
     fichiers = glob.glob(os.path.join(dossier_exports, "agents_save_*.csv"))
     if not fichiers:
-        print(f"❌ Aucun fichier CSV trouvé dans {dossier_exports}")
+        print(f"Aucun fichier CSV trouvé dans {dossier_exports}")
         return
         
-    print(f"✅ {len(fichiers)} fichiers détectés. Début du traitement...")
+    print(f"{len(fichiers)} fichiers détectés. Début du traitement...")
 
     liste_df_globale = []
 
