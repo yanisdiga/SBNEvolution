@@ -42,7 +42,7 @@ def save_nodes_influence(pop, iteration, test_name):
             pos_x = agent.x
             pos_y = agent.y
             
-            # Extraction avec tes vrais index :
+            # Extraction avec les vrais index :
             # 0=Oeil, 1=Bouche, 2=Nageoire F (Avancer), 3=Nageoire R (Rotation)
             o_a = I[0, 2]  # Oeil -> Avancer
             o_r = I[0, 3]  # Oeil -> Rotation
