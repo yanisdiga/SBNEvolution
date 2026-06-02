@@ -1,32 +1,38 @@
-# On applique ces méthode car boucler sur tout les agents alors que certain sont très loin nous consommaient trop de ressources (bcp trop !)
-def update_grid(agents, foods, CELL_SIZE, mode_food):
+def update_grid(agents: list, foods: list, cell_size: float, food_mode: int) -> dict:
+    """
+    Groups entities into a spatial grid based on cell_size to optimize neighbor search.
+    """
     grid = {}
     
-    # On crée une liste globale contenant d'office les agents
-    entites = agents.copy()
+    # Create a global list containing agents
+    entities = agents.copy()
     
-    # Si on est en mode alimentation, on ajoute la nourriture à cette liste
-    if mode_food == 2 or mode_food == 3:
-        # On n'ajoute que les nourritures dont l'attribut 'active' est True (mangeable)
-        entites.extend([f for f in foods if f.active])
+    # If in feeding mode, add active food to the list
+    if food_mode == 2 or food_mode == 3:
+        # Only add food whose 'active' attribute is True (edible)
+        entities.extend([f for f in foods if f.active])
     
-    for agent in entites:
-        # Calcul de l'index de la case
-        cx = int(agent.x // CELL_SIZE)
-        cy = int(agent.y // CELL_SIZE)
+    for entity in entities:
+        # Calculate cell index
+        cx = int(entity.x // cell_size)
+        cy = int(entity.y // cell_size)
         
         cell_key = (cx, cy)
         if cell_key not in grid:
             grid[cell_key] = []
-        grid[cell_key].append(agent)
+        grid[cell_key].append(entity)
+        
     return grid
 
-def get_neighbors(agent, grid, CELL_SIZE):
+def get_neighbors(agent, grid: dict, cell_size: float) -> list:
+    """
+    Retrieves all entities in the agent's cell and the 8 surrounding cells.
+    """
     neighbors = []
-    cx = int(agent.x // CELL_SIZE)
-    cy = int(agent.y // CELL_SIZE)
+    cx = int(agent.x // cell_size)
+    cy = int(agent.y // cell_size)
 
-    # On boucle sur les 9 cases (celle de l'agent + les 8 voisines)
+    # Loop over the 9 cells (agent's cell + 8 neighbors)
     for i in range(cx - 1, cx + 2):
         for j in range(cy - 1, cy + 2):
             if (i, j) in grid:

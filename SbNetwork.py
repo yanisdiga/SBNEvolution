@@ -2,32 +2,36 @@ import numpy as np
 import random
 
 class SbNetwork:
+    """
+    Spiking Brain Network (SBN) - Neural network controlling the agent.
+    """
     def __init__(self):
-        self.num_nodes=8
-        # Création de la matrice des états
+        self.num_nodes = 8
+        # State matrix creation
         self.states = np.zeros(self.num_nodes, dtype=int)
-        # Signification des positions dans le tableau
-        # 0. Oeil
-        # 1. Bouche
-        # 2. Nageoire F (Forward)
-        # 3. Nageoire R (Rotate)
+        
+        # Node meanings (Indices)
+        # 0. Eye
+        # 1. Mouth
+        # 2. Fin F (Forward)
+        # 3. Fin R (Rotate)
         # 4. R1
         # 5. R2
         # 6. R3
         # 7. R4
         
-        # Création de la matrice des poids
+        # Weight matrix creation
         self.weights = np.zeros((self.num_nodes, self.num_nodes), dtype=int)
         
-        # Initialisation des états
-        self.states[2] = 1 # Nageoire F est tout le temps activé
-        self.states[3] = 1 # Nageoire R est activé à l'initialisation
+        # Initialize states
+        self.states[2] = 1 # Fin F is always activated initially
+        self.states[3] = 1 # Fin R is activated initially
         
-        # Initialisation des poids
-        self.weights[0, 1] = 1 # Oeil active la bouche
-        self.weights[2, 2] = 1 # Negeoire F active Nageoire F
-        self.weights[3, 3] = -1 # R s'auto inhibe
-        self.weights[3, 4] = 1 # R active R1 ...
+        # Initialize weights
+        self.weights[0, 1] = 1 # Eye activates Mouth
+        self.weights[2, 2] = 1 # Fin F self-activates
+        self.weights[3, 3] = -1 # R self-inhibits
+        self.weights[3, 4] = 1 # R activates R1 ...
         self.weights[4, 4] = -1
         self.weights[4, 5] = 1
         self.weights[5, 5] = -1
@@ -37,77 +41,74 @@ class SbNetwork:
         self.weights[7, 7] = -1
         self.weights[7, 3] = 1
         
-        # On stock les id réel de chaque noeud (pour la visualisation)
-        self.true_ids = list(range(self.num_nodes)) # Donne [0, 1, 2, 3, 4, 5, 6, 7]
-        self.next_historical_id = 8 # Le prochain neurone créé s'appellera N8
+        # Store true IDs of each node (for visualization)
+        self.true_ids = list(range(self.num_nodes)) # [0, 1, 2, 3, 4, 5, 6, 7]
+        self.next_historical_id = 8 # Next created neuron will be called N8
         
-    def step(self, oeil):
-        # On récupère bien la valeur de l'oeil par rapport a l'environnement
-        self.states[0] = oeil
+    def step(self, eye_input: int):
+        # Update eye state based on environment
+        self.states[0] = eye_input
         
-        # Calcul de la somme pondérée pour tous les noeuds d'un coup (Produit matriciel)
+        # Calculate weighted sum for all nodes at once (Matrix product)
         x = self.states @ self.weights
         
-        # On applique un seuil (si x > 0, on met 1, sinon 0)
+        # Apply threshold (if x > 0 -> 1, else 0)
         new_states = (x > 0).astype(int)
         
-        # On remet la bonne valeur de l'oeil
-        new_states[0] = oeil
+        # Restore correct eye value
+        new_states[0] = eye_input
         
-        # Mise à jour synchrone
+        # Synchronous update
         self.states = new_states
         
-        # On return que les états actionneurs
+        # Return actuator states: Mouth(Eat), Fin F(Move), Fin R(Rotate)
         return self.states[1], self.states[2], self.states[3]
 
-    def mutation(self, pd, pi, wmax):
-        if (random.random() < pd):
+    def mutation(self, prob_del: float, prob_ins: float, weight_max: int):
+        if random.random() < prob_del:
             self.deletion()
-        if (random.random() < pi):
-            self.insertion(wmax)
+        if random.random() < prob_ins:
+            self.insertion(weight_max)
     
-    def evolution(self, pw, wmax):
-        if (random.random() < pw):
-            self.weight_update(wmax)
+    def evolution(self, prob_weight: float, weight_max: int):
+        if random.random() < prob_weight:
+            self.weight_update(weight_max)
     
-    def weight_update(self, wmax):
-        entry_node = random.randint(0, self.num_nodes-1)
-        exit_node = random.randint(0, self.num_nodes-1)
+    def weight_update(self, weight_max: int):
+        entry_node = random.randint(0, self.num_nodes - 1)
+        exit_node = random.randint(0, self.num_nodes - 1)
         self.weights[entry_node, exit_node] += random.randint(-1, 1)
-        self.weights[entry_node, exit_node] = np.clip(self.weights[entry_node, exit_node], -wmax, wmax)
+        self.weights[entry_node, exit_node] = np.clip(self.weights[entry_node, exit_node], -weight_max, weight_max)
             
-    def insertion(self, wmax):
+    def insertion(self, weight_max: int):
         n = self.num_nodes
-        # On ajoute un noeud au réseau de neuronnes
+        # Add a node to the neural network
         self.states = np.append(self.states, random.randint(0, 1))
-        # On crée une nouvelle matrice de poids d'un cran plus grande
-        new_weights = np.zeros((n+1, n+1), dtype=int)
-        # On copie l'ancienne matrice dans la nouvelle
+        # Create a new weight matrix one size larger
+        new_weights = np.zeros((n + 1, n + 1), dtype=int)
+        # Copy the old matrix into the new one
         new_weights[:n, :n] = self.weights
-        # On rempli les poids du nouvelle état entre [-wmax, wmax]
-        # On commence par la dernière colonne
-        # Méthode chaotique
-        #new_weights[:, n] = np.random.randint(-wmax, wmax+1, size=n+1) # +1 car [start, stop[
-        # La dernière ligne
-        #new_weights[n, :] = np.random.randint(-wmax, wmax+1, size=n+1) # +1 car [start, stop[
-        # Méthode de relais
-        entry_node = random.randint(0, self.num_nodes-1)
-        exit_node = random.randint(0, self.num_nodes-1)
-        new_weights[entry_node, n] = random.randint(-wmax, wmax)
-        new_weights[n, exit_node] = random.randint(-wmax, wmax)
-        # On remplace l'ancienne matrice de poids par la nouvelle
+        
+        # Relay method for initialization
+        entry_node = random.randint(0, self.num_nodes - 1)
+        exit_node = random.randint(0, self.num_nodes - 1)
+        new_weights[entry_node, n] = random.randint(-weight_max, weight_max)
+        new_weights[n, exit_node] = random.randint(-weight_max, weight_max)
+        
+        # Replace old weight matrix
         self.weights = new_weights
-        self.num_nodes += 1 # On met a jour le nombre de noeud
-        self.true_ids.append(self.next_historical_id) # On ajoute le nouveau noeud dans les id
-        self.next_historical_id += 1 # On met a jour l'id du prochain noeud
+        self.num_nodes += 1 # Update node count
+        self.true_ids.append(self.next_historical_id) # Add new node to ID list
+        self.next_historical_id += 1 # Update next historical ID
         
     def deletion(self):
-        if self.num_nodes <=4:
+        # Prevent deleting base neurons
+        if self.num_nodes <= 4:
             return
         
-        node_to_delete = random.randint(4, self.num_nodes-1)
+        node_to_delete = random.randint(4, self.num_nodes - 1)
         self.states = np.delete(self.states, node_to_delete)
         self.weights = np.delete(self.weights, node_to_delete, axis=0)
         self.weights = np.delete(self.weights, node_to_delete, axis=1)
-        self.num_nodes -=1
+        self.num_nodes -= 1
         self.true_ids.pop(node_to_delete)

@@ -1,61 +1,61 @@
-import networkx as nx
-import matplotlib.pyplot as plt
 import numpy as np
 import csv
 import os
 
-def save_nodes_influence(pop, iteration, test_name):
+def save_nodes_influence(pop: list, iteration: int, test_name: str, max_depth: int = 5):
+    """
+    Saves the influence matrix of each agent's neural network to a CSV file.
+    """
     folder = os.path.join(test_name, "exports")
     if not os.path.exists(folder):
         os.makedirs(folder, exist_ok=True)
+        
     header = [
-        "ID_Agent", "Pos_X", "Pos_Y",
-        "Oeil_Avancer", "Oeil_Rotation",
-        "Avancer_Rotation", "Rotation_Avancer",
-        "Avancer_Oeil", "Rotation_Oeil"
+        "Agent_ID", "Pos_X", "Pos_Y",
+        "Eye_Forward", "Eye_Rotate",
+        "Forward_Rotate", "Rotate_Forward",
+        "Forward_Eye", "Rotate_Eye"
     ]
     
     file_name = os.path.join(folder, f"agents_save_{iteration}.csv")
     
-    with open(file_name, mode="w", newline='', encoding="utf-8") as fichier_csv:
-        writer = csv.writer(fichier_csv, delimiter=',')
+    with open(file_name, mode="w", newline='', encoding="utf-8") as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
         writer.writerow(header)
-        
-        max_depth = 5 
         
         for agent in pop:
             W = agent.sbn.weights
         
-            # On initialise la matrice d'influence en float
+            # Initialize influence matrix as float
             I = np.zeros_like(W, dtype=float)
             
-            # Matrice qui va stocker les puissances successives
+            # Matrix to store successive powers
             W_power = np.eye(agent.sbn.num_nodes)
             
-            # On utilise la profondeur fixe au lieu de num_nodes
+            # Calculate influence using fixed depth
             for k in range(1, max_depth + 1):
                 W_power = np.matmul(W_power, W)
                 I += W_power
             
-            # Récupération des données spatiales et d'identification
-            id_agent = agent.id
+            # Extract spatial and identification data
+            agent_id = agent.id
             pos_x = agent.x
             pos_y = agent.y
             
-            # Extraction avec les vrais index :
-            # 0=Oeil, 1=Bouche, 2=Nageoire F (Avancer), 3=Nageoire R (Rotation)
-            o_a = I[0, 2]  # Oeil -> Avancer
-            o_r = I[0, 3]  # Oeil -> Rotation
-            a_r = I[2, 3]  # Avancer -> Rotation
-            r_a = I[3, 2]  # Rotation -> Avancer
-            a_o = I[2, 0]  # Avancer -> Oeil
-            r_o = I[3, 0]  # Rotation -> Oeil
+            # Extraction with real indices:
+            # 0=Eye, 1=Mouth, 2=Fin F (Forward), 3=Fin R (Rotate)
+            e_f = I[0, 2]  # Eye -> Forward
+            e_r = I[0, 3]  # Eye -> Rotate
+            f_r = I[2, 3]  # Forward -> Rotate
+            r_f = I[3, 2]  # Rotate -> Forward
+            f_e = I[2, 0]  # Forward -> Eye
+            r_e = I[3, 0]  # Rotate -> Eye
             
-            # Création et écriture de la ligne
-            ligne_agent = [
-                id_agent, pos_x, pos_y,
-                o_a, o_r, a_r, r_a, a_o, r_o
+            # Create and write row
+            agent_row = [
+                agent_id, pos_x, pos_y,
+                e_f, e_r, f_r, r_f, f_e, r_e
             ]
-            writer.writerow(ligne_agent)
+            writer.writerow(agent_row)
             
-    print(f"Sauvegarde des cerveaux générée à l'itération : {iteration} dans le fichier {file_name}")
+    print(f"Brain save generated at iteration: {iteration} in file {file_name}")

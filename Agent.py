@@ -1,12 +1,13 @@
 import random
 import math
-import pygame
 import numpy as np
-import random
 from SbNetwork import SbNetwork
 
 class Agent:
-    def __init__(self, id, x, y, energy, rotate_deg, env_width, env_height, cost_rotate, cost_move, cost_eat, cost_neuron, cost_metabolism):
+    """
+    Represents an autonomous agent in the environment.
+    """
+    def __init__(self, id: int, x: float, y: float, energy: float, rotate_deg: float, env_width: float, env_height: float, cost_rotate: float, cost_move: float, cost_eat: float, cost_neuron: float, cost_metabolism: float):
         self.id = id
         self.x = x
         self.y = y
@@ -15,16 +16,16 @@ class Agent:
         self.env_width = env_width
         self.env_height = env_height
         self.sbn = SbNetwork()
-        self.speed = 2
+        self.speed = 2.0
         self.angle = random.uniform(0, 360)
         
-        # Variable stockant une information liée a la simulation
+        # Variables storing simulation state
         self.alive = True
-        self.proie_potentielle = None
+        self.target_prey = None
         self.vision_input = 0
-        self.step = 0
+        self.step_count = 0
         
-        # Cout des actions
+        # Action costs
         self.cost_rotate = cost_rotate
         self.cost_move = cost_move
         self.cost_eat = cost_eat
@@ -32,91 +33,105 @@ class Agent:
         self.cost_metabolism = cost_metabolism
         
         # Digestion
-        self.stomach = 0
+        self.stomach = 0.0
         
-    def move(self):
-        # On convertis l'angle en radian pour les calculs
+    def move(self) -> None:
+        """Moves the agent forward based on its current angle and speed."""
+        # Convert angle to radians for calculations
         rad = math.radians(self.angle)
     
         dx = self.speed * math.cos(rad)
         dy = self.speed * math.sin(rad)
         
-        # On crée des nouvelles position
+        # Create new positions
         new_x = self.x + dx
         new_y = self.y + dy
         
-        # On met a jour les nouvelles position en prenant en compte les limites de l'environnement
+        # Update positions taking into account environment boundaries
         self.x = max(0, min(new_x, self.env_width))
         self.y = max(0, min(new_y, self.env_height))
         
-    def rotate(self):
+    def rotate(self) -> None:
+        """Rotates the agent by rotate_deg degrees."""
         self.angle += self.rotate_deg
-        self.angle %= 360 # On garde l'angle entre 0 et 360
+        self.angle %= 360 # Keep angle between 0 and 360
         
-    def eat(self, victim):
+    def eat(self, victim: 'Agent | Food') -> None:
+        """Eats a victim (Food or another Agent), transferring energy."""
         victim.alive = False
         self.energy += victim.energy
         victim.energy = 0
     
-    def digestion(self):
+    def digestion(self) -> float:
+        """Empties the stomach and returns the waste amount."""
         waste = self.stomach
         self.stomach = 0
         return waste
     
-    def division(self, id, vision_angle, pd, pi, wmax):
-        # On calcule un angle sur dans la zone aveugle du parent
-        angle_enfant = (self.angle + random.uniform(vision_angle, 360 - vision_angle)) % 360 # Modulo 360 car on veut garder l'angle entre 0 et 360
-        angle_enfant_rad = math.radians(angle_enfant)
+    def division(self, new_id: int, vision_angle: float, prob_del: float, prob_ins: float, weight_max: int) -> 'Agent':
+        """
+        Creates a new child agent by division, splitting energy and inheriting the neural network.
+        The child spawns in the blind spot of the parent.
+        """
+        # Calculate a safe angle in the parent's blind zone
+        angle_child = (self.angle + random.uniform(vision_angle, 360 - vision_angle)) % 360
+        angle_child_rad = math.radians(angle_child)
         
-        # On utilise cet angle pour placer l'enfant à 15 pixels de distance dans une direction différente de la vision du parent
-        distance_spawn = 15
-        new_x = self.x + distance_spawn * math.cos(angle_enfant_rad)
-        new_y = self.y + distance_spawn * math.sin(angle_enfant_rad)
+        # Use this angle to place the child at a distance in a direction outside parent's vision
+        distance_spawn = 15.0
+        new_x = self.x + distance_spawn * math.cos(angle_child_rad)
+        new_y = self.y + distance_spawn * math.sin(angle_child_rad)
         
-        # On borne avec les limites de l'environnement
+        # Constrain to environment boundaries
         new_x = max(0, min(new_x, self.env_width))
         new_y = max(0, min(new_y, self.env_height))
             
-        # On crée un nouvelle agent enfant
-        enfant = Agent(id, new_x, new_y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.cost_metabolism)
-        # On divise par deux l'énergie de l'enfant et du parent
-        enfant.energy /= 2
-        self.energy /= 2
-        # On copie le cerveau du parent dans l'enfant
-        enfant.sbn.num_nodes = self.sbn.num_nodes
-        enfant.sbn.states = self.sbn.states.copy()
-        enfant.sbn.weights = self.sbn.weights.copy()
-        enfant.sbn.true_ids = self.sbn.true_ids.copy()
-        enfant.sbn.next_historical_id = self.sbn.next_historical_id
+        # Create a new child agent
+        child = Agent(new_id, new_x, new_y, self.energy, self.rotate_deg, self.env_width, self.env_height, self.cost_rotate, self.cost_move, self.cost_eat, self.cost_neuron, self.cost_metabolism)
         
-        # On donne à l'enfant son angle de vision
-        enfant.angle = angle_enfant
+        # Halve energy for both child and parent
+        child.energy /= 2.0
+        self.energy /= 2.0
         
-        # On fais évoluer l'enfant a la naissance
-        enfant.sbn.mutation(pd, pi, wmax)
+        # Copy the parent's brain to the child
+        child.sbn.num_nodes = self.sbn.num_nodes
+        child.sbn.states = self.sbn.states.copy()
+        child.sbn.weights = self.sbn.weights.copy()
+        child.sbn.true_ids = self.sbn.true_ids.copy()
+        child.sbn.next_historical_id = self.sbn.next_historical_id
         
-        return enfant
+        # Set child's initial angle
+        child.angle = angle_child
         
-    def update(self, oeil, pd, pi, pw, wmax):
-        # Si l'agent est mort on ne fais rien
+        # Mutate the child at birth
+        child.sbn.mutation(prob_del, prob_ins, weight_max)
+        
+        return child
+        
+    def update(self, eye_input: int, prob_del: float, prob_ins: float, prob_weight: float, weight_max: int) -> int:
+        """
+        Updates the agent's state, runs the neural network step, and performs actions.
+        Returns the eat action (0 or 1).
+        """
+        # If the agent is dead, do nothing
         if not self.alive:
-            return
+            return 0
         
         self.energy -= self.cost_metabolism
         lost_energy = self.cost_metabolism
-        # On appelle la mutation
-        #self.sbn.mutation(pd, pi, wmax)
-        self.sbn.evolution(pw, wmax)
         
-        # On récupère les actions ordonnées par le cerveau
-        action_eat, action_move, action_rotate = self.sbn.step(oeil)
+        # Call neural network evolution (weight update)
+        self.sbn.evolution(prob_weight, weight_max)
+        
+        # Get actions ordered by the brain
+        action_eat, action_move, action_rotate = self.sbn.step(eye_input)
 
-        # On retire pour chaque neurone activé son coût
+        # Deduct cost for each activated neuron
         value_cost_neuron = np.sum(self.sbn.states) * self.cost_neuron
         lost_energy += value_cost_neuron
         self.energy -= value_cost_neuron
         
-        # On effectue chaque action en vérifiant l'énergie et en la diminuant en fonction
+        # Perform each action checking energy limits and decreasing it accordingly
         if action_rotate and self.energy >= self.cost_rotate:
             self.rotate()
             self.energy -= self.cost_rotate
@@ -132,69 +147,45 @@ class Agent:
             else:
                 action_eat = 0
         
-        # Si l'agent n'a plus d'énergie il est donc mort
+        # If agent has no energy left, it dies
         if self.energy <= 0:
             self.alive = False
             
-        # On incremente le compteur de pas
-        self.step += 1
+        # Increment step counter
+        self.step_count += 1
         
-        # On incrémente l'estomac avec l'énergie dépensée
+        # Accumulate spent energy in the stomach
         self.stomach += lost_energy
         
-        # On retourne l'action manger pour que l'environnement puisse le savoir
+        # Return eat action so the environment knows
         return action_eat
     
-    def sense(self, voisins, dist_vision_sq, dist_manger_sq, angle_vision):
+    def sense(self, neighbors: list, dist_vision_sq: float, dist_eat_sq: float, angle_vision: float) -> None:
+        """
+        Senses the environment based on neighbors. 
+        Updates vision_input and sets target_prey if one is in range and view.
+        """
         self.vision_input = 0
-        self.proie_potentielle = None
-        angle_regard = math.radians(self.angle)
+        self.target_prey = None
+        angle_view = math.radians(self.angle)
         angle_vision_rad = math.radians(angle_vision)
         
-        for other in voisins:
+        for other in neighbors:
             if other is self or not other.alive:
                 continue
             
-            # On calcul la distance entre les deux agents
+            # Calculate squared distance between agents
             dx = other.x - self.x
             dy = other.y - self.y
             dist_sq = dx*dx + dy*dy
             
-            # On regarde si dans les voisins de l'agent, il y'en a un dans son cone de vision
+            # Check if neighbor is within vision distance
             if dist_sq < dist_vision_sq:
-                angle_cible = math.atan2(dy, dx)  
-                diff = (angle_cible - angle_regard + math.pi) % (2 * math.pi) - math.pi
+                angle_target = math.atan2(dy, dx)  
+                diff = (angle_target - angle_view + math.pi) % (2 * math.pi) - math.pi
                 if abs(diff) < angle_vision_rad:
                     self.vision_input = 1
-                    # On vérifie qu'il est a bonne distance
-                    if dist_sq < dist_manger_sq:
-                        self.proie_potentielle = other
-                        break # On arrête à la première proie vue et mangeable
-    
-    def draw(self, screen, overlay, size, vision_dist, fov, max_energy, offset_y, vision_cone, tracking=False):
-        if not self.alive:
-            return
-        
-        # On récupère la position de l'agent
-        pos = (int(self.x), int(self.y + offset_y)) # offset crée le décalage pour laisser de la place pour le dashboard du haut
-        
-        # Affichage du cercle colorée
-        ratio = max(0, min(self.energy / max_energy, 1))
-        color = (int(255 * (1 - ratio)), int(255 * ratio), 0)
-        if tracking: # Si l'agent est ciblé
-            # Halo de ciblage (cercle vide plus grand)
-            pygame.draw.circle(screen, (255, 255, 255), pos, size + 10, 2)
-            
-        pygame.draw.circle(screen, color, pos, size)
-        
-        if vision_cone:
-            # Affichage du cône de vision
-            left_rad = math.radians(self.angle - fov)
-            right_rad = math.radians(self.angle + fov)
-            
-            p_left = (self.x + vision_dist * math.cos(left_rad), (self.y + offset_y) + vision_dist * math.sin(left_rad))
-            p_right = (self.x + vision_dist * math.cos(right_rad), (self.y + offset_y) + vision_dist * math.sin(right_rad))
-            
-            cone_color = (255, 0, 0, 40) if self.vision_input == 1 else (255, 255, 255, 20)
-            pygame.draw.polygon(overlay, cone_color, [pos, p_left, p_right])
-
+                    # Check if it's within eating distance
+                    if dist_sq < dist_eat_sq:
+                        self.target_prey = other
+                        break # Stop at the first visible and edible prey
