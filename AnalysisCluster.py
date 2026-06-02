@@ -33,7 +33,7 @@ def spatial_analysis(parent_folder: str) -> pd.DataFrame:
                 
                 # Open a single world
                 df = pd.read_csv(file)
-                if len(df) < 6: # Safety if species is almost extinct
+                if len(df) < 10: # Safety if species is almost extinct
                     continue
                     
                 coordinates = df[['Pos_X', 'Pos_Y']].values
